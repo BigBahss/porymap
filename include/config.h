@@ -17,8 +17,10 @@ class KeyValueConfigBase : public QObject
 public:
     void save();
     void load();
+    void remove();
     virtual ~KeyValueConfigBase();
     virtual void reset() = 0;
+    bool newFile = false;
 protected:
     virtual QString getConfigFilepath() = 0;
     virtual void parseConfigKeyValue(QString key, QString value) = 0;

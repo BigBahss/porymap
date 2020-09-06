@@ -425,7 +425,9 @@ bool MainWindow::openProject(QString dir) {
                 .arg(getLogPath())
                 .arg(getMostRecentError());
         msgBox.critical(nullptr, "Error Opening Project", errorMsg);
-
+        if (projectConfig.newFile) {
+            projectConfig.remove();
+        }
     }
 
     if (success) {
