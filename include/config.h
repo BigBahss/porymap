@@ -18,15 +18,16 @@ public:
     void save();
     void load();
     void remove();
+    bool configIsNew();
     virtual ~KeyValueConfigBase();
     virtual void reset() = 0;
-    bool newFile = false;
 protected:
     virtual QString getConfigFilepath() = 0;
     virtual void parseConfigKeyValue(QString key, QString value) = 0;
     virtual QMap<QString, QString> getKeyValueMap() = 0;
     virtual void onNewConfigFileCreated() = 0;
     virtual void setUnreadKeys() = 0;
+    bool newConfig;
 };
 
 class PorymapConfig: public KeyValueConfigBase

@@ -26,10 +26,10 @@ void KeyValueConfigBase::load() {
             file.close();
             this->onNewConfigFileCreated();
             this->save();
-            this->newFile = true;
+            this->newConfig = true;
         }
     } else {
-        this->newFile = false;
+        this->newConfig = false;
     }
 
     if (!file.open(QIODevice::ReadOnly)) {
@@ -83,6 +83,10 @@ void KeyValueConfigBase::save() {
 void KeyValueConfigBase::remove() {
     QFile file(this->getConfigFilepath());
     file.remove();
+}
+
+bool KeyValueConfigBase::configIsNew() {
+    return this->newConfig;
 }
 
 const QMap<MapSortOrder, QString> mapSortOrderMap = {
