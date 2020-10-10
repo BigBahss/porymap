@@ -231,6 +231,8 @@ private slots:
     void on_pushButton_ConfigureEncountersJSON_clicked();
 
     void on_actionRegion_Map_Editor_triggered();
+    void on_actionOpen_Terminal_triggered();
+    void on_actionSet_Terminal_Executable_triggered();
 
 private:
     Ui::MainWindow *ui;

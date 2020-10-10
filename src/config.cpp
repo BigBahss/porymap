@@ -175,6 +175,8 @@ void PorymapConfig::parseConfigKeyValue(QString key, QString value) {
         }
     } else if (key == "theme") {
         this->theme = value;
+    } else if (key == "terminal") {
+        this->terminal = value;
     } else {
         logWarn(QString("Invalid config key found in config file %1: '%2'").arg(this->getConfigFilepath()).arg(key));
     }
@@ -198,6 +200,7 @@ QMap<QString, QString> PorymapConfig::getKeyValueMap() {
     map.insert("region_map_dimensions", QString("%1x%2").arg(this->regionMapDimensions.width())
                                                         .arg(this->regionMapDimensions.height()));
     map.insert("theme", this->theme);
+    map.insert("terminal", this->terminal);
     return map;
 }
 
@@ -280,6 +283,11 @@ void PorymapConfig::setTheme(QString theme) {
     this->theme = theme;
 }
 
+void PorymapConfig::setTerminal(QString terminal) {
+    this->terminal = terminal;
+    this->save();
+}
+
 QString PorymapConfig::getRecentProject() {
     return this->recentProject;
 }
@@ -333,6 +341,10 @@ QSize PorymapConfig::getRegionMapDimensions() {
 
 QString PorymapConfig::getTheme() {
     return this->theme;
+}
+
+QString PorymapConfig::getTerminal() {
+    return this->terminal;
 }
 
 const QMap<BaseGameVersion, QString> baseGameVersionMap = {

@@ -2668,6 +2668,50 @@ void MainWindow::on_actionRegion_Map_Editor_triggered() {
     }
 }
 
+void MainWindow::on_actionOpen_Terminal_triggered() {
+    QProcess::startDetached(porymapConfig.getTerminal(), QStringList(), editor->project->root);
+}
+
+void MainWindow::on_actionSet_Terminal_Executable_triggered() {
+    QDialog *setTerm_Dialog = new QDialog(this);
+    QLabel *setTerm_Label = new QLabel("Terminal Executable", setTerm_Dialog);
+    QLineEdit *setTerm_LineEdit = new QLineEdit(setTerm_Dialog);
+    setTerm_LineEdit->setClearButtonEnabled(true);
+    setTerm_LineEdit->setMinimumWidth(300);
+    setTerm_LineEdit->setText(porymapConfig.getTerminal());
+    setTerm_LineEdit->setToolTip("The file path of a terminal executable or the command if it exists in your PATH.");
+    QPushButton *setTerm_BrowseButton = new QPushButton(setTerm_Dialog);
+    setTerm_BrowseButton->setMaximumSize(setTerm_LineEdit->height(), setTerm_LineEdit->height());
+    setTerm_BrowseButton->setIcon(QIcon::fromTheme("document-open", QIcon(":icons/folder.ico")));
+    QDialogButtonBox *setTerm_DialogButtons = new QDialogButtonBox(
+        QDialogButtonBox::Ok | QDialogButtonBox::Cancel, Qt::Horizontal, setTerm_Dialog
+    );
+
+    QGridLayout gridLayout(setTerm_Dialog);
+    gridLayout.addWidget(setTerm_Label, 0, 0, 1, 2);
+    gridLayout.addWidget(setTerm_LineEdit, 1, 0);
+    gridLayout.addWidget(setTerm_BrowseButton, 1, 1);
+    gridLayout.addWidget(setTerm_DialogButtons, 2, 0, 1, 2);
+
+    connect(setTerm_BrowseButton, &QPushButton::clicked,
+        [setTerm_LineEdit, setTerm_Dialog]() {
+            QUrl term_ExecutablePath = QFileDialog::getOpenFileUrl(
+                setTerm_Dialog, "", QUrl::fromLocalFile(QDir::rootPath())
+            );
+            setTerm_LineEdit->setText(QDir::toNativeSeparators(term_ExecutablePath.toLocalFile()));
+        }
+    );
+    connect(setTerm_DialogButtons, &QDialogButtonBox::accepted,
+        [setTerm_LineEdit, setTerm_Dialog]() {
+            porymapConfig.setTerminal(setTerm_LineEdit->text());
+            setTerm_Dialog->accept();
+        }
+    );
+    connect(setTerm_DialogButtons, SIGNAL(rejected()), setTerm_Dialog, SLOT(reject()));
+
+    setTerm_Dialog->open();
+}
+
 void MainWindow::closeSupplementaryWindows() {
     if (this->tilesetEditor)
         delete this->tilesetEditor;
