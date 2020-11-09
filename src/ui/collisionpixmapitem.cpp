@@ -50,7 +50,7 @@ void CollisionPixmapItem::paint(QGraphicsSceneMouseEvent *event) {
         QPoint pos = Metatile::coordFromPixmapCoord(event->pos());
 
         // Set straight paths on/off and snap to the dominant axis when on
-        if (event->modifiers() & Qt::ControlModifier) {
+        if (event->modifiers() & settings->straightPathsModifiers) {
             this->lockNondominantAxis(event);
             pos = this->adjustCoords(pos);
         } else {

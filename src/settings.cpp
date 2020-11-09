@@ -1,9 +1,12 @@
 #include "settings.h"
 
-Settings::Settings()
-{
-    this->smartPathsEnabled = false;
-    this->betterCursors = true;
-    this->playerViewRectEnabled = false;
-    this->cursorTileRectEnabled = true;
-}
+Settings::Settings() :
+    smartPathsEnabled(false),
+    betterCursors(true),
+    mapCursor(QCursor()),
+    playerViewRectEnabled(false),
+    cursorTileRectEnabled(true),
+    smartPathsModifiers(Qt::ShiftModifier),
+    straightPathsModifiers(Qt::ControlModifier),
+    magicFillModifiers(Qt::ControlModifier)
+{  }

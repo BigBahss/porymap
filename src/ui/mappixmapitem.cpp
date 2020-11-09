@@ -14,7 +14,7 @@ void MapPixmapItem::paint(QGraphicsSceneMouseEvent *event) {
             QPoint pos = Metatile::coordFromPixmapCoord(event->pos());
 
             // Set straight paths on/off and snap to the dominant axis when on
-            if (event->modifiers() & Qt::ControlModifier) {
+            if (event->modifiers() & settings->straightPathsModifiers) {
                 this->lockNondominantAxis(event);
                 pos = this->adjustCoords(pos);
             } else {
@@ -23,16 +23,16 @@ void MapPixmapItem::paint(QGraphicsSceneMouseEvent *event) {
             }
 
             // Paint onto the map.
-            bool shiftPressed = event->modifiers() & Qt::ShiftModifier;
+            bool smartPathsModifiersPressed = event->modifiers() & settings->smartPathsModifiers;
             QPoint selectionDimensions = this->metatileSelector->getSelectionDimensions();
             if (settings->smartPathsEnabled) {
-                if (!shiftPressed && selectionDimensions.x() == 3 && selectionDimensions.y() == 3) {
+                if (!smartPathsModifiersPressed && selectionDimensions.x() == 3 && selectionDimensions.y() == 3) {
                     paintSmartPath(pos.x(), pos.y());
                 } else {
                     paintNormal(pos.x(), pos.y());
                 }
             } else {
-                if (shiftPressed && selectionDimensions.x() == 3 && selectionDimensions.y() == 3) {
+                if (smartPathsModifiersPressed && selectionDimensions.x() == 3 && selectionDimensions.y() == 3) {
                     paintSmartPath(pos.x(), pos.y());
                 } else {
                     paintNormal(pos.x(), pos.y());
@@ -50,7 +50,7 @@ void MapPixmapItem::shift(QGraphicsSceneMouseEvent *event) {
             QPoint pos = Metatile::coordFromPixmapCoord(event->pos());
 
             // Set straight paths on/off and snap to the dominant axis when on
-            if (event->modifiers() & Qt::ControlModifier) {
+            if (event->modifiers() & settings->straightPathsModifiers) {
                 this->lockNondominantAxis(event);
                 pos = this->adjustCoords(pos);
             } else {
@@ -366,11 +366,20 @@ void MapPixmapItem::floodFill(QGraphicsSceneMouseEvent *event) {
             QPoint selectionDimensions = this->metatileSelector->getSelectionDimensions();
             int tile = selectedMetatiles->first();
             if (selectedMetatiles->count() > 1 || (block && block->tile != tile)) {
-                bool smartPathsEnabled = event->modifiers() & Qt::ShiftModifier;
-                if ((this->settings->smartPathsEnabled || smartPathsEnabled) && selectionDimensions.x() == 3 && selectionDimensions.y() == 3)
-                    this->floodFillSmartPath(pos.x(), pos.y());
-                else
-                    this->floodFill(pos.x(), pos.y());
+                bool smartPathsModifiersPressed = event->modifiers() & settings->smartPathsModifiers;
+                if (settings->smartPathsEnabled) {
+                    if (!smartPathsModifiersPressed && selectionDimensions.x() == 3 && selectionDimensions.y() == 3) {
+                        floodFillSmartPath(pos.x(), pos.y());
+                    } else {
+                        floodFill(pos.x(), pos.y());
+                    }
+                } else {
+                    if (smartPathsModifiersPressed && selectionDimensions.x() == 3 && selectionDimensions.y() == 3) {
+                        floodFillSmartPath(pos.x(), pos.y());
+                    } else {
+                        floodFill(pos.x(), pos.y());
+                    }
+                }
             }
         }
     }

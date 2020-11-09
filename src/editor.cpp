@@ -1053,15 +1053,15 @@ void Editor::onMapEndPaint(QGraphicsSceneMouseEvent *, MapPixmapItem *item) {
 
 void Editor::setSmartPathCursorMode(QGraphicsSceneMouseEvent *event)
 {
-    bool shiftPressed = event->modifiers() & Qt::ShiftModifier;
+    bool smartPathsModifiersPressed = event->modifiers() & settings->smartPathsModifiers;
     if (settings->smartPathsEnabled) {
-        if (!shiftPressed) {
+        if (!smartPathsModifiersPressed) {
             this->cursorMapTileRect->setSmartPathMode(true);
         } else {
             this->cursorMapTileRect->setSmartPathMode(false);
         }
     } else {
-        if (shiftPressed) {
+        if (smartPathsModifiersPressed) {
             this->cursorMapTileRect->setSmartPathMode(true);
         } else {
             this->cursorMapTileRect->setSmartPathMode(false);
@@ -1070,7 +1070,7 @@ void Editor::setSmartPathCursorMode(QGraphicsSceneMouseEvent *event)
 }
 
 void Editor::setStraightPathCursorMode(QGraphicsSceneMouseEvent *event) {
-    if (event->modifiers() & Qt::ControlModifier) {
+    if (event->modifiers() & settings->straightPathsModifiers) {
         this->cursorMapTileRect->setStraightPathMode(true);
     } else {
         this->cursorMapTileRect->setStraightPathMode(false);
@@ -1090,7 +1090,7 @@ void Editor::mouseEvent_map(QGraphicsSceneMouseEvent *event, MapPixmapItem *item
             if (event->buttons() & Qt::RightButton) {
                 item->updateMetatileSelection(event);
             } else if (event->buttons() & Qt::MiddleButton) {
-                if (event->modifiers() & Qt::ControlModifier) {
+                if (event->modifiers() & settings->magicFillModifiers) {
                     item->magicFill(event);
                 } else {
                     item->floodFill(event);
@@ -1109,7 +1109,7 @@ void Editor::mouseEvent_map(QGraphicsSceneMouseEvent *event, MapPixmapItem *item
         } else if (map_edit_mode == "fill") {
             if (event->buttons() & Qt::RightButton) {
                 item->updateMetatileSelection(event);
-            } else if (event->modifiers() & Qt::ControlModifier) {
+            } else if (event->modifiers() & settings->magicFillModifiers) {
                 item->magicFill(event);
             } else {
                 item->floodFill(event);
@@ -1199,7 +1199,7 @@ void Editor::mouseEvent_collision(QGraphicsSceneMouseEvent *event, CollisionPixm
         if (event->buttons() & Qt::RightButton) {
             item->updateMovementPermissionSelection(event);
         } else if (event->buttons() & Qt::MiddleButton) {
-            if (event->modifiers() & Qt::ControlModifier) {
+            if (event->modifiers() & settings->magicFillModifiers) {
                 item->magicFill(event);
             } else {
                 item->floodFill(event);
@@ -1217,7 +1217,7 @@ void Editor::mouseEvent_collision(QGraphicsSceneMouseEvent *event, CollisionPixm
     } else if (map_edit_mode == "fill") {
         if (event->buttons() & Qt::RightButton) {
             item->pick(event);
-        } else if (event->modifiers() & Qt::ControlModifier) {
+        } else if (event->modifiers() & settings->magicFillModifiers) {
             item->magicFill(event);
         } else {
             item->floodFill(event);
