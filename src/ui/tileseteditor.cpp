@@ -23,6 +23,7 @@ TilesetEditor::TilesetEditor(Project *project, Map *map, QWidget *parent) :
     this->setTilesets(this->map->layout->tileset_primary_label, this->map->layout->tileset_secondary_label);
     this->initUi();
     this->initMetatileHistory();
+    this->initPaletteEditor();
 }
 
 TilesetEditor::~TilesetEditor()
@@ -83,6 +84,11 @@ void TilesetEditor::setTilesets(QString primaryTilesetLabel, QString secondaryTi
     if (this->secondaryTileset) delete this->secondaryTileset;
     this->primaryTileset = primaryTileset->copy();
     this->secondaryTileset = secondaryTileset->copy();
+
+    if (this->paletteEditor) {
+        this->paletteEditor->setTilesets(primaryTileset, secondaryTileset);
+        this->paletteEditor->setPaletteId(this->paletteId);
+    }
 }
 
 void TilesetEditor::initUi() {
@@ -220,22 +226,23 @@ void TilesetEditor::initShortcuts() {
 
 QObjectList TilesetEditor::shortcutableObjects() const {
     QObjectList shortcutable_objects;
+
     for (auto *action : findChildren<QAction *>())
-        if (ShortcutsConfig::objectNameIsValid(action))
+        if (action->parentWidget()->window() == this->window())
             shortcutable_objects.append(qobject_cast<QObject *>(action));
     for (auto *shortcut : findChildren<Shortcut *>())
-        if (ShortcutsConfig::objectNameIsValid(shortcut))
+        if (shortcut->parentWidget()->window() == this->window())
             shortcutable_objects.append(qobject_cast<QObject *>(shortcut));
-    
+
     return shortcutable_objects;
 }
 
 void TilesetEditor::applyUserShortcuts() {
     for (auto *action : findChildren<QAction *>())
-        if (ShortcutsConfig::objectNameIsValid(action))
+        if (action->parentWidget()->window() == this->window())
             action->setShortcuts(shortcutsConfig.userShortcuts(action));
     for (auto *shortcut : findChildren<Shortcut *>())
-        if (ShortcutsConfig::objectNameIsValid(shortcut))
+        if (shortcut->parentWidget()->window() == this->window())
             shortcut->setKeys(shortcutsConfig.userShortcuts(shortcut));
 }
 
@@ -759,9 +766,7 @@ void TilesetEditor::on_actionChange_Metatiles_Count_triggered()
 void TilesetEditor::on_actionChange_Palettes_triggered()
 {
     if (!this->paletteEditor) {
-        this->paletteEditor = new PaletteEditor(this->project, this->primaryTileset, this->secondaryTileset, this->paletteId, this);
-        connect(this->paletteEditor, SIGNAL(changedPaletteColor()), this, SLOT(onPaletteEditorChangedPaletteColor()));
-        connect(this->paletteEditor, SIGNAL(changedPalette(int)), this, SLOT(onPaletteEditorChangedPalette(int)));
+        initPaletteEditor();
     }
 
     if (!this->paletteEditor->isVisible()) {
@@ -771,6 +776,13 @@ void TilesetEditor::on_actionChange_Palettes_triggered()
     } else {
         this->paletteEditor->activateWindow();
     }
+}
+
+void TilesetEditor::initPaletteEditor() {
+    this->paletteEditor = new PaletteEditor(this->project, this->primaryTileset, this->secondaryTileset, this->paletteId, this);
+    connect(this->paletteEditor, SIGNAL(changedPaletteColor()), this, SLOT(onPaletteEditorChangedPaletteColor()));
+    connect(this->paletteEditor, SIGNAL(changedPalette(int)), this, SLOT(onPaletteEditorChangedPalette(int)));
+    connect(this->paletteEditor, &QObject::destroyed, [=](QObject *) { this->paletteEditor = nullptr; });
 }
 
 void TilesetEditor::onPaletteEditorChangedPaletteColor() {

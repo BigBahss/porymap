@@ -53,14 +53,14 @@
          <x>0</x>
          <y>0</y>
          <width>794</width>
-         <height>642</height>
+         <height>609</height>
         </rect>
        </property>
       </widget>
      </widget>
     </item>
     <item>
-     <widget class="QFrame" name="frame">
+     <widget class="QFrame" name="frame_Bottom">
       <property name="frameShape">
        <enum>QFrame::Box</enum>
       </property>
@@ -68,6 +68,22 @@
        <enum>QFrame::Raised</enum>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_2">
+       <property name="spacing">
+        <number>12</number>
+       </property>
+       <item>
+        <widget class="QGroupBox" name="groupBox_Modifiers">
+         <property name="title">
+          <string>Keyboard Modifiers</string>
+         </property>
+         <property name="flat">
+          <bool>false</bool>
+         </property>
+         <property name="checkable">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
        <item>
         <widget class="QDialogButtonBox" name="buttonBox">
          <property name="standardButtons">

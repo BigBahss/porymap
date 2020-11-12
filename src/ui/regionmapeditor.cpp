@@ -101,22 +101,23 @@ void RegionMapEditor::initShortcuts() {
 
 QObjectList RegionMapEditor::shortcutableObjects() const {
     QObjectList shortcutable_objects;
+
     for (auto *action : findChildren<QAction *>())
-        if (ShortcutsConfig::objectNameIsValid(action))
+        if (action->parentWidget()->window() == this->window())
             shortcutable_objects.append(qobject_cast<QObject *>(action));
     for (auto *shortcut : findChildren<Shortcut *>())
-        if (ShortcutsConfig::objectNameIsValid(shortcut))
+        if (shortcut->parentWidget()->window() == this->window())
             shortcutable_objects.append(qobject_cast<QObject *>(shortcut));
-    
+
     return shortcutable_objects;
 }
 
 void RegionMapEditor::applyUserShortcuts() {
     for (auto *action : findChildren<QAction *>())
-        if (ShortcutsConfig::objectNameIsValid(action))
+        if (action->parentWidget()->window() == this->window())
             action->setShortcuts(shortcutsConfig.userShortcuts(action));
     for (auto *shortcut : findChildren<Shortcut *>())
-        if (ShortcutsConfig::objectNameIsValid(shortcut))
+        if (shortcut->parentWidget()->window() == this->window())
             shortcut->setKeys(shortcutsConfig.userShortcuts(shortcut));
 }
 

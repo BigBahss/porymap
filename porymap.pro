@@ -74,6 +74,7 @@ SOURCES += src/core/block.cpp \
     src/ui/shortcut.cpp \
     src/ui/shortcutseditor.cpp \
     src/ui/multikeyedit.cpp \
+    src/ui/graphicsscenemousefilter.cpp \
     src/config.cpp \
     src/editor.cpp \
     src/main.cpp \
@@ -146,6 +147,7 @@ HEADERS  += include/core/block.h \
     include/ui/shortcut.h \
     include/ui/shortcutseditor.h \
     include/ui/multikeyedit.h \
+    include/ui/graphicsscenemousefilter.h \
     include/config.h \
     include/editor.h \
     include/mainwindow.h \

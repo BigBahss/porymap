@@ -11,18 +11,22 @@
 #include <QMessageBox>
 #include <QRegularExpression>
 #include <QLabel>
+#include <QCheckBox>
 
 
 ShortcutsEditor::ShortcutsEditor(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::ShortcutsEditor),
-    main_container(nullptr)
+    main_container(nullptr),
+    modifiers_container(nullptr)
 {
     ui->setupUi(this);
     setAttribute(Qt::WA_DeleteOnClose);
     main_container = ui->scrollAreaWidgetContents_Shortcuts;
-    auto *formLayout = new QVBoxLayout(main_container);
-    formLayout->setSpacing(12);
+    auto *main_layout = new QVBoxLayout(main_container);
+    main_layout->setSpacing(12);
+    modifiers_container = ui->groupBox_Modifiers;
+    modifiers_container->hide();
     connect(ui->buttonBox, &QDialogButtonBox::clicked,
             this, &ShortcutsEditor::dialogButtonClicked);
 }
@@ -43,6 +47,24 @@ void ShortcutsEditor::setShortcutableObjects(const QObjectList &shortcutableObje
     populateMainContainer();
 }
 
+void ShortcutsEditor::setExtraModifierKeys(QList<MouseModifier> modifiers)
+{
+    if (modifiers.isEmpty()) {
+        modifiers_container->hide();
+        return;
+    }
+
+    m_modifiers = modifiers;
+
+    modifiers_container->show();
+    modifiers_layout = new QFormLayout(modifiers_container);
+    for (auto modifier : modifiers) {
+        auto *modifierEdit = new ModifierEdit(modifiers_container);
+        modifierEdit->setKeyboardModifiers(modifier.modifiers);
+        modifiers_layout->addRow(modifier.whatsThis, modifierEdit);
+    }
+}
+
 void ShortcutsEditor::saveShortcuts() {
     QMultiMap<const QObject *, QKeySequence> objects_keySequences;
     for (auto it = multiKeyEdits_objects.cbegin(); it != multiKeyEdits_objects.cend(); ++it) {
@@ -53,6 +75,15 @@ void ShortcutsEditor::saveShortcuts() {
     }
 
     shortcutsConfig.setUserShortcuts(objects_keySequences);
+
+    int i = 0;
+    for (auto *modifierEdit : modifiers_container->findChildren<ModifierEdit *>(QString(), Qt::FindDirectChildrenOnly)) {
+        m_modifiers[i++].modifiers = modifierEdit->keyboardModifiers();
+    }
+        
+
+    shortcutsConfig.setUserModifiers(m_modifiers);
+
     emit shortcutsSaved();
 }
 
@@ -69,7 +100,7 @@ void ShortcutsEditor::resetShortcuts() {
 void ShortcutsEditor::parseObjectList(const QObjectList &objectList) {
     for (auto *object : objectList) {
         const auto label = getLabel(object);
-        if (!label.isEmpty() && ShortcutsConfig::objectNameIsValid(object))
+        if (!label.isEmpty() && !object->objectName().isEmpty() && !object->objectName().startsWith("_q_"))
             labels_objects.insert(label, object);
     }
 }
@@ -185,4 +216,40 @@ void ShortcutsEditor::dialogButtonClicked(QAbstractButton *button) {
     } else if (buttonRole == QDialogButtonBox::ResetRole) {
         resetShortcuts();
     }
+}
+
+
+ModifierEdit::ModifierEdit(QWidget *parent) :
+    QWidget(parent),
+    checkBoxCtrl(new QCheckBox("Ctrl", this)),
+    checkBoxShift(new QCheckBox("Shift", this)),
+    checkBoxAlt(new QCheckBox("Alt", this))
+{
+    auto *checkbox_layout = new QHBoxLayout(this);
+    checkbox_layout->setContentsMargins(12, 0, 12, 0);
+    layout()->addWidget(checkBoxCtrl);
+    layout()->addWidget(checkBoxShift);
+    layout()->addWidget(checkBoxAlt);
+}
+
+ModifierEdit::~ModifierEdit()
+{
+    delete checkBoxCtrl;
+    delete checkBoxShift;
+    delete checkBoxAlt;
+}
+
+void ModifierEdit::setKeyboardModifiers(Qt::KeyboardModifiers modifiers) {
+    checkBoxCtrl->setChecked(modifiers & Qt::ControlModifier ? true : false);
+    checkBoxShift->setChecked(modifiers & Qt::ShiftModifier ? true : false);
+    checkBoxAlt->setChecked(modifiers & Qt::AltModifier ? true : false);
+}
+
+Qt::KeyboardModifiers ModifierEdit::keyboardModifiers() const {
+    Qt::KeyboardModifiers modifiers = Qt::NoModifier;
+    modifiers |= checkBoxCtrl->isChecked() ? Qt::ControlModifier : Qt::NoModifier;
+    modifiers |= checkBoxShift->isChecked() ? Qt::ShiftModifier : Qt::NoModifier;
+    modifiers |= checkBoxAlt->isChecked() ? Qt::AltModifier : Qt::NoModifier;
+    logInfo(QString("%1").arg(modifiers));
+    return modifiers;
 }

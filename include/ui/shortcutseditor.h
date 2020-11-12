@@ -12,6 +12,9 @@
 class QFormLayout;
 class MultiKeyEdit;
 class QAbstractButton;
+class QGroupBox;
+class MouseModifier;
+class QCheckBox;
 
 
 namespace Ui {
@@ -28,6 +31,7 @@ public:
     ~ShortcutsEditor();
 
     void setShortcutableObjects(const QObjectList &shortcutableObjects);
+    void setExtraModifierKeys(QList<MouseModifier> modifiers);
 
 signals:
     void shortcutsSaved();
@@ -35,9 +39,12 @@ signals:
 private:
     Ui::ShortcutsEditor *ui;
     QWidget *main_container;
+    QGroupBox *modifiers_container;
+    QFormLayout *modifiers_layout;
     QMultiMap<QString, const QObject *> labels_objects;
     QHash<QString, QFormLayout *> contexts_layouts;
     QHash<MultiKeyEdit *, const QObject *> multiKeyEdits_objects;
+    QList<MouseModifier> m_modifiers;
 
     void parseObjectList(const QObjectList &objectList);
     QString getLabel(const QObject *object) const;
@@ -55,6 +62,24 @@ private:
 private slots:
     void checkForDuplicates(const QKeySequence &keySequence);
     void dialogButtonClicked(QAbstractButton *button);
+};
+
+
+class ModifierEdit : public QWidget
+{
+    Q_OBJECT
+
+public:
+    ModifierEdit(QWidget *parent = nullptr);
+    ~ModifierEdit();
+
+    void setKeyboardModifiers(Qt::KeyboardModifiers);
+    Qt::KeyboardModifiers keyboardModifiers() const;
+
+private:
+    QCheckBox *checkBoxCtrl;
+    QCheckBox *checkBoxShift;
+    QCheckBox *checkBoxAlt;
 };
 
 #endif // SHORTCUTSEDITOR_H

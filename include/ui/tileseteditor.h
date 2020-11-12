@@ -110,6 +110,7 @@ private:
     void initShortcuts();
     void restoreWindowState();
     void initMetatileHistory();
+    void initPaletteEditor();
     void setTilesets(QString primaryTilesetLabel, QString secondaryTilesetLabel);
     void reset();
     void drawSelectedTiles();

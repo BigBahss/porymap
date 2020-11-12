@@ -113,6 +113,7 @@ PaletteEditor::PaletteEditor(Project *project, Tileset *primaryTileset, Tileset 
     this->initColorSliders();
     this->setPaletteId(paletteId);
     this->commitEditHistory(this->ui->spinBox_PaletteId->value());
+    this->initShortcuts();
     this->restoreWindowState();
 }
 
@@ -227,6 +228,15 @@ void PaletteEditor::commitEditHistory(int paletteId) {
     }
     PaletteHistoryItem *commit = new PaletteHistoryItem(colors);
     this->palettesHistory[paletteId].push(commit);
+}
+
+void PaletteEditor::initShortcuts() {
+    /* If more actions are added to PaletteEditor then it would be worthwhile to pass them to
+     * ShortcutsEditor. For now we just inherit Undo/Redo shortcuts from the parent. */
+    auto *parentUndo = parent()->findChild<QAction *>(QString("actionUndo"));
+    auto *parentRedo = parent()->findChild<QAction *>(QString("actionRedo"));
+    if (parentUndo) ui->actionUndo->setShortcuts(parentUndo->shortcuts());
+    if (parentRedo) ui->actionRedo->setShortcuts(parentRedo->shortcuts());
 }
 
 void PaletteEditor::restoreWindowState() {

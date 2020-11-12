@@ -197,36 +197,48 @@ extern ProjectConfig projectConfig;
 class QAction;
 class Shortcut;
 
+struct MouseModifier
+{
+    Qt::KeyboardModifiers modifiers;
+    QString name;
+    QString whatsThis;
+};
+
+/* Stores default and custom shortcuts for 'shortcutable' objects. Shortcutable objects are
+ * objects such as QAction, Shortcut/QShortcut, and any QObject with the "shortcut" property. */
 class ShortcutsConfig : public KeyValueConfigBase
 {
 public:
     ShortcutsConfig() :
         user_shortcuts({ }),
         default_shortcuts({ })
-    { }
+    {  }
 
     virtual void reset() override { user_shortcuts.clear(); }
 
+    // Call this prior to applying user shortcuts to allow the user to restore defaults.
+    // Stores the currently set shortcuts and objectName's for object.
     void setDefaultShortcuts(const QObjectList &objects);
-    void setDefaultShortcuts(const QMultiMap<const QObject *, QKeySequence> &objects_keySequences);
     QList<QKeySequence> defaultShortcuts(const QObject *object) const;
+    void setDefaultModifiers(const QList<MouseModifier> &modifiers);
+    Qt::KeyboardModifiers defaultModifier(const QString &modifierName) const;
 
     void setUserShortcuts(const QObjectList &objects);
     void setUserShortcuts(const QMultiMap<const QObject *, QKeySequence> &objects_keySequences);
     QList<QKeySequence> userShortcuts(const QObject *object) const;
-
-    static bool objectNameIsValid(const QObject *object);
+    void setUserModifiers(const QList<MouseModifier> &modifiers);
+    Qt::KeyboardModifiers userModifier(const QString &modifierName) const;
 
 protected:
     virtual QString getConfigFilepath() override;
     virtual void parseConfigKeyValue(QString key, QString value) override;
     virtual QMap<QString, QString> getKeyValueMap() override;
-    virtual void onNewConfigFileCreated() override { };
-    virtual void setUnreadKeys() override { };
+    virtual void onNewConfigFileCreated() override { }
+    virtual void setUnreadKeys() override { }
 
 private:
-    QMultiMap<QString, QKeySequence> user_shortcuts;
-    QMultiMap<QString, QKeySequence> default_shortcuts;
+    QMultiMap<QString, QString> user_shortcuts;
+    QMultiMap<QString, QString> default_shortcuts;
 
     enum StoreType {
         User,
@@ -235,7 +247,6 @@ private:
 
     QString cfgKey(const QObject *object) const;
     QList<QKeySequence> currentShortcuts(const QObject *object) const;
-
     void storeShortcutsFromList(StoreType storeType, const QObjectList &objects);
     void storeShortcuts(
             StoreType storeType,
@@ -243,7 +254,6 @@ private:
             const QList<QKeySequence> &keySequences);
 };
 
-// Call setDefaultShortcuts() prior to applying user shortcuts.
 extern ShortcutsConfig shortcutsConfig;
 
 #endif // CONFIG_H

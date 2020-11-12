@@ -9,6 +9,7 @@
 #include "metatile.h"
 #include "montabwidget.h"
 #include "editcommands.h"
+#include "config.h"
 #include <QCheckBox>
 #include <QPainter>
 #include <QMouseEvent>
@@ -37,6 +38,11 @@ Editor::Editor(Ui::MainWindow* ui)
             selectNewEvents = false;
         }
     });
+
+    shortcutsConfig.setDefaultModifiers(extraModifierKeys());
+    settings->smartPathsModifiers = shortcutsConfig.userModifier("editor_modifier_smart_paths");
+    settings->straightPathsModifiers = shortcutsConfig.userModifier("editor_modifier_straight_paths");
+    settings->magicFillModifiers = shortcutsConfig.userModifier("editor_modifier_magic_fill");
 }
 
 Editor::~Editor()
@@ -1878,6 +1884,26 @@ Tileset* Editor::getCurrentMapPrimaryTileset()
 {
     QString tilesetLabel = map->layout->tileset_primary_label;
     return project->getTileset(tilesetLabel);
+}
+
+QList<MouseModifier> Editor::extraModifierKeys() const {
+    MouseModifier smart_paths;
+    smart_paths.modifiers = settings->smartPathsModifiers;
+    smart_paths.name = "editor_modifier_smart_paths";
+    smart_paths.whatsThis = "Smart Paths: Hold down to enable/disable while painting metatiles.";
+    MouseModifier straight_paths;
+    straight_paths.modifiers = settings->straightPathsModifiers;
+    straight_paths.name = "editor_modifier_straight_paths";
+    straight_paths.whatsThis = "Straight Paths: Hold down to enable while painting or map shifting.";
+    MouseModifier magic_fill;
+    magic_fill.modifiers = settings->magicFillModifiers;
+    magic_fill.name = "editor_modifier_magic_fill";
+    magic_fill.whatsThis = "Magic Fill: Hold down while performing a Bucket Fill.";
+    return { smart_paths, straight_paths, magic_fill };
+}
+
+void Editor::applyUserKeyboardModifiers() {
+
 }
 
 QList<DraggablePixmapItem *> Editor::getObjects() {

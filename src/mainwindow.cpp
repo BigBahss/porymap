@@ -128,22 +128,29 @@ void MainWindow::initExtraShortcuts() {
 
 QObjectList MainWindow::shortcutableObjects() const {
     QObjectList shortcutable_objects;
+
     for (auto *action : findChildren<QAction *>())
-        if (ShortcutsConfig::objectNameIsValid(action))
+        if (action->parentWidget()->window() == this->window())
             shortcutable_objects.append(qobject_cast<QObject *>(action));
     for (auto *shortcut : findChildren<Shortcut *>())
-        if (ShortcutsConfig::objectNameIsValid(shortcut))
+        if (shortcut->parentWidget()->window() == this->window())
             shortcutable_objects.append(qobject_cast<QObject *>(shortcut));
-    
+
+    if (tilesetEditor)
+        shortcutable_objects.append(tilesetEditor->shortcutableObjects());
+
+    if (regionMapEditor)
+        shortcutable_objects.append(regionMapEditor->shortcutableObjects());
+
     return shortcutable_objects;
 }
 
 void MainWindow::applyUserShortcuts() {
     for (auto *action : findChildren<QAction *>())
-        if (ShortcutsConfig::objectNameIsValid(action))
+        if (action->parentWidget()->window() == this->window())
             action->setShortcuts(shortcutsConfig.userShortcuts(action));
     for (auto *shortcut : findChildren<Shortcut *>())
-        if (ShortcutsConfig::objectNameIsValid(shortcut))
+        if (shortcut->parentWidget()->window() == this->window())
             shortcut->setKeys(shortcutsConfig.userShortcuts(shortcut));
 }
 
@@ -259,7 +266,8 @@ void MainWindow::initMapSortOrder() {
     mapSortOrderActionGroup->addAction(ui->actionSort_by_Area);
     mapSortOrderActionGroup->addAction(ui->actionSort_by_Layout);
 
-    connect(ui->toolButton_MapSortOrder, &QToolButton::triggered, this, &MainWindow::mapSortOrder_changed);
+    // connect(ui->toolButton_MapSortOrder, &QToolButton::triggered, this, &MainWindow::mapSortOrder_changed);
+    connect(mapSortOrderActionGroup, &QActionGroup::triggered, this, &MainWindow::mapSortOrder_changed);
 
     QAction* sortOrder = ui->toolButton_MapSortOrder->menu()->actions()[mapSortOrder];
     ui->toolButton_MapSortOrder->setIcon(sortOrder->icon());
@@ -1469,6 +1477,7 @@ void MainWindow::initShortcutsEditor() {
     connectSubEditorsToShortcutsEditor();
 
     shortcutsEditor->setShortcutableObjects(shortcutableObjects());
+    shortcutsEditor->setExtraModifierKeys(editor->extraModifierKeys());
 }
 
 void MainWindow::connectSubEditorsToShortcutsEditor() {

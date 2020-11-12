@@ -732,10 +732,22 @@ QMap<QString, QString> ShortcutsConfig::getKeyValueMap() {
         auto keySequences = user_shortcuts.values(cfg_key);
         QStringList values;
         for (auto keySequence : keySequences)
-            values.append(keySequence.toString());
+            values.append(keySequence);
         QString value = values.join(' ');
         map.insert(cfg_key, value);
     }
+    // for (auto cfg_key : user_modifiers.uniqueKeys()) {
+    //     QStringList keys;
+    //     if (user_modifiers.value(cfg_key) & Qt::ControlModifier)
+    //         keys.append("Ctrl");
+    //     if (user_modifiers.value(cfg_key) & Qt::ShiftModifier)
+    //         keys.append("Shift");
+    //     if (user_modifiers.value(cfg_key) & Qt::AltModifier)
+    //         keys.append("Alt");
+    //     QString keyboardModifiers = keys.join('+');
+    //     logWarn(keyboardModifiers);
+    //     map.insert(cfg_key, keyboardModifiers);
+    // }
     return map;
 }
 
@@ -744,34 +756,91 @@ void ShortcutsConfig::setDefaultShortcuts(const QObjectList &objects) {
     save();
 }
 
-void ShortcutsConfig::setDefaultShortcuts(const QMultiMap<const QObject *, QKeySequence> &objects_keySequences) {
-    for (auto *object : objects_keySequences.uniqueKeys())
-        storeShortcuts(StoreType::Default, cfgKey(object), objects_keySequences.values(object));
+QList<QKeySequence> ShortcutsConfig::defaultShortcuts(const QObject *object) const {
+    QList<QKeySequence> keySequences;
+    for (auto value : default_shortcuts.values(cfgKey(object)))
+        keySequences.append(QKeySequence(value));
+    return keySequences;
+}
+
+void ShortcutsConfig::setDefaultModifiers(const QList<MouseModifier> &modifiers) {
+    for (auto modifier : modifiers) {
+        QStringList modifier_keys;
+        if (modifier.modifiers & Qt::ControlModifier)
+            modifier_keys.append("Ctrl");
+        if (modifier.modifiers & Qt::ShiftModifier)
+            modifier_keys.append("Shift");
+        if (modifier.modifiers & Qt::AltModifier)
+            modifier_keys.append("Alt");
+        QString keySequence = modifier_keys.join('+');
+        default_shortcuts.insert(modifier.name, keySequence);
+    }
     save();
 }
 
-QList<QKeySequence> ShortcutsConfig::defaultShortcuts(const QObject *object) const {
-    return default_shortcuts.values(cfgKey(object));
+Qt::KeyboardModifiers ShortcutsConfig::defaultModifier(const QString &modifierName) const {
+    Qt::KeyboardModifiers modifiers = Qt::NoModifier;
+    auto stringifiedModifiers = default_shortcuts.value(modifierName);
+    if (stringifiedModifiers.contains("Ctrl"))
+        modifiers |= Qt::ControlModifier;
+    if (stringifiedModifiers.contains("Shift"))
+        modifiers |= Qt::ShiftModifier;
+    if (stringifiedModifiers.contains("Alt"))
+        modifiers |= Qt::AltModifier;
+    return modifiers;
 }
 
 void ShortcutsConfig::setUserShortcuts(const QObjectList &objects) {
     storeShortcutsFromList(StoreType::User, objects);
+    logInfo(QString("Saving custom keyboard shortcuts to config file: %1").arg(getConfigFilepath()));
     save();
 }
 
 void ShortcutsConfig::setUserShortcuts(const QMultiMap<const QObject *, QKeySequence> &objects_keySequences) {
     for (auto *object : objects_keySequences.uniqueKeys())
-        storeShortcuts(StoreType::User, cfgKey(object), objects_keySequences.values(object));
+        if (!object->objectName().isEmpty() && !object->objectName().startsWith("_q_"))
+            storeShortcuts(StoreType::User, cfgKey(object), objects_keySequences.values(object));
+    logInfo(QString("Saving custom keyboard shortcuts to config file: %1").arg(getConfigFilepath()));
     save();
 }
 
 QList<QKeySequence> ShortcutsConfig::userShortcuts(const QObject *object) const {
-    return user_shortcuts.values(cfgKey(object));
+    QList<QKeySequence> keySequences;
+    for (auto value : user_shortcuts.values(cfgKey(object)))
+        keySequences.append(QKeySequence(value));
+    return keySequences;
+}
+
+void ShortcutsConfig::setUserModifiers(const QList<MouseModifier> &modifiers) {
+    for (auto modifier : modifiers) {
+        QStringList modifier_keys;
+        if (modifier.modifiers & Qt::ControlModifier)
+            modifier_keys.append("Ctrl");
+        if (modifier.modifiers & Qt::ShiftModifier)
+            modifier_keys.append("Shift");
+        if (modifier.modifiers & Qt::AltModifier)
+            modifier_keys.append("Alt");
+        QString keySequence = modifier_keys.join('+');
+        user_shortcuts.insert(modifier.name, keySequence);
+    }
+    save();
+}
+
+Qt::KeyboardModifiers ShortcutsConfig::userModifier(const QString &modifierName) const {
+    Qt::KeyboardModifiers modifiers = Qt::NoModifier;
+    auto stringifiedModifiers = user_shortcuts.value(modifierName);
+    if (stringifiedModifiers.contains("Ctrl"))
+        modifiers |= Qt::ControlModifier;
+    if (stringifiedModifiers.contains("Shift"))
+        modifiers |= Qt::ShiftModifier;
+    if (stringifiedModifiers.contains("Alt"))
+        modifiers |= Qt::AltModifier;
+    return modifiers;
 }
 
 void ShortcutsConfig::storeShortcutsFromList(StoreType storeType, const QObjectList &objects) {
     for (const auto *object : objects)
-        if (objectNameIsValid(object))
+        if (!object->objectName().isEmpty() && !object->objectName().startsWith("_q_"))
             storeShortcuts(storeType, cfgKey(object), currentShortcuts(object));
 }
 
@@ -789,29 +858,24 @@ void ShortcutsConfig::storeShortcuts(
 
     if (keySequences.isEmpty()) {
         if (storeType == Default)
-            default_shortcuts.insert(cfgKey, QKeySequence());
+            default_shortcuts.insert(cfgKey, QString());
         if (storeUser)
-            user_shortcuts.insert(cfgKey, QKeySequence());
+            user_shortcuts.insert(cfgKey, QString());
     } else {
         for (auto keySequence : keySequences) {
             if (storeType == Default)
-                default_shortcuts.insert(cfgKey, keySequence);
+                default_shortcuts.insert(cfgKey, keySequence.toString());
             if (storeUser)
-                user_shortcuts.insert(cfgKey, keySequence);
+                user_shortcuts.insert(cfgKey, keySequence.toString());
         }
     }
-}
-
-bool ShortcutsConfig::objectNameIsValid(const QObject *object) {
-    // Qt internal action names start with "_q_" so we filter those out.
-    return !object->objectName().isEmpty() && !object->objectName().startsWith("_q_");
 }
 
 /* Creates a config key from the object's name prepended with the parent 
  * window's object name, and converts camelCase to snake_case. */
 QString ShortcutsConfig::cfgKey(const QObject *object) const {
     auto cfg_key = QString();
-    auto *parentWidget = static_cast<QWidget *>(object->parent());
+    const auto *parentWidget = static_cast<QWidget *>(object->parent());
     if (parentWidget)
         cfg_key = parentWidget->window()->objectName() + '_';
     cfg_key += object->objectName();
@@ -830,9 +894,6 @@ QList<QKeySequence> ShortcutsConfig::currentShortcuts(const QObject *object) con
     if (object->inherits("QAction")) {
         const auto *action = qobject_cast<const QAction *>(object);
         return action->shortcuts();
-    } else if (object->inherits("QAbstractButton")) {
-        const auto *button = qobject_cast<const QAbstractButton *>(object);
-        return { button->shortcut() };
     } else if (object->inherits("Shortcut")) {
         const auto *shortcut = qobject_cast<const Shortcut *>(object);
         return shortcut->keys();

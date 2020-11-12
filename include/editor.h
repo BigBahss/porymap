@@ -27,6 +27,7 @@
 
 class DraggablePixmapItem;
 class MetatilesPixmapItem;
+class MouseModifier;
 
 class Editor : public QObject
 {
@@ -104,6 +105,7 @@ public:
     void duplicateSelectedEvents();
     void redrawObject(DraggablePixmapItem *item);
     QList<DraggablePixmapItem *> getObjects();
+    QList<MouseModifier> extraModifierKeys() const;
 
     QGraphicsScene *scene = nullptr;
     QGraphicsPixmapItem *current_view = nullptr;
@@ -153,6 +155,9 @@ public:
 
     void shouldReselectEvents();
     void scaleMapView(int);
+
+public slots:
+    void applyUserKeyboardModifiers();
 
 private:
     void setConnectionItemsVisible(bool);
