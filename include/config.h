@@ -46,21 +46,6 @@ public:
         this->regionMapDimensions = QSize(32, 20);
         this->theme = "default";
     }
-    void setRecentProject(QString project);
-    void setRecentMap(QString map);
-    void setMapSortOrder(MapSortOrder order);
-    void setPrettyCursors(bool enabled);
-    void setMainGeometry(QByteArray, QByteArray, QByteArray, QByteArray);
-    void setTilesetEditorGeometry(QByteArray, QByteArray);
-    void setPaletteEditorGeometry(QByteArray, QByteArray);
-    void setRegionMapEditorGeometry(QByteArray, QByteArray);
-    void setCollisionOpacity(int opacity);
-    void setMetatilesZoom(int zoom);
-    void setShowPlayerView(bool enabled);
-    void setShowCursorTile(bool enabled);
-    void setMonitorFiles(bool monitor);
-    void setRegionMapDimensions(int width, int height);
-    void setTheme(QString theme);
     QString getRecentProject();
     QString getRecentMap();
     MapSortOrder getMapSortOrder();
@@ -76,6 +61,22 @@ public:
     bool getMonitorFiles();
     QSize getRegionMapDimensions();
     QString getTheme();
+public slots:
+    void setRecentProject(QString project);
+    void setRecentMap(QString map);
+    void setMapSortOrder(MapSortOrder order);
+    void setPrettyCursors(bool enabled);
+    void setMainGeometry(QByteArray, QByteArray, QByteArray, QByteArray);
+    void setTilesetEditorGeometry(QByteArray, QByteArray);
+    void setPaletteEditorGeometry(QByteArray, QByteArray);
+    void setRegionMapEditorGeometry(QByteArray, QByteArray);
+    void setCollisionOpacity(int opacity);
+    void setMetatilesZoom(int zoom);
+    void setShowPlayerView(bool enabled);
+    void setShowCursorTile(bool enabled);
+    void setMonitorFiles(bool monitor);
+    void setRegionMapDimensions(int width, int height);
+    void setTheme(QString theme);
 protected:
     virtual QString getConfigFilepath() override;
     virtual void parseConfigKeyValue(QString key, QString value) override;
@@ -138,34 +139,35 @@ public:
         this->customScripts.clear();
         this->readKeys.clear();
     }
-    void setBaseGameVersion(BaseGameVersion baseGameVersion);
     BaseGameVersion getBaseGameVersion();
-    void setEncounterJsonActive(bool active);
     bool getEncounterJsonActive();
-    void setUsePoryScript(bool usePoryScript);
     bool getUsePoryScript();
-    void setProjectDir(QString projectDir);
     QString getProjectDir();
-    void setUseCustomBorderSize(bool enable);
     bool getUseCustomBorderSize();
-    void setEventWeatherTriggerEnabled(bool enable);
     bool getEventWeatherTriggerEnabled();
-    void setEventSecretBaseEnabled(bool enable);
     bool getEventSecretBaseEnabled();
-    void setHiddenItemQuantityEnabled(bool enable);
     bool getHiddenItemQuantityEnabled();
-    void setHiddenItemRequiresItemfinderEnabled(bool enable);
     bool getHiddenItemRequiresItemfinderEnabled();
-    void setHealLocationRespawnDataEnabled(bool enable);
     bool getHealLocationRespawnDataEnabled();
-    void setObjectEventInConnectionEnabled(bool enable);
     bool getObjectEventInConnectionEnabled();
-    void setFloorNumberEnabled(bool enable);
     bool getFloorNumberEnabled();
-    void setTripleLayerMetatilesEnabled(bool enable);
     bool getTripleLayerMetatilesEnabled();
-    void setCustomScripts(QList<QString> scripts);
     QList<QString> getCustomScripts();
+public slots:
+    void setBaseGameVersion(BaseGameVersion baseGameVersion);
+    void setEncounterJsonActive(bool active);
+    void setUsePoryScript(bool usePoryScript);
+    void setProjectDir(QString projectDir);
+    void setUseCustomBorderSize(bool enable);
+    void setEventWeatherTriggerEnabled(bool enable);
+    void setEventSecretBaseEnabled(bool enable);
+    void setHiddenItemQuantityEnabled(bool enable);
+    void setHiddenItemRequiresItemfinderEnabled(bool enable);
+    void setHealLocationRespawnDataEnabled(bool enable);
+    void setObjectEventInConnectionEnabled(bool enable);
+    void setFloorNumberEnabled(bool enable);
+    void setTripleLayerMetatilesEnabled(bool enable);
+    void setCustomScripts(QList<QString> scripts);
 protected:
     virtual QString getConfigFilepath() override;
     virtual void parseConfigKeyValue(QString key, QString value) override;

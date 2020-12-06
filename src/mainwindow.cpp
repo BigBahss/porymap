@@ -163,6 +163,10 @@ void MainWindow::initExtraSignals() {
     connect(ui->actionEyedropper, &QAction::triggered, ui->toolButton_Dropper, &QToolButton::click);
     connect(ui->actionMove, &QAction::triggered, ui->toolButton_Move, &QToolButton::click);
     connect(ui->actionMap_Shift, &QAction::triggered, ui->toolButton_Shift, &QToolButton::click);
+    connect(ui->actionMonitor_Project_Files, &QAction::triggered,
+            &porymapConfig, &PorymapConfig::setMonitorFiles);
+    connect(ui->actionUse_Poryscript, &QAction::triggered,
+            &projectConfig, &ProjectConfig::setUsePoryScript);
 }
 
 void MainWindow::initEditor() {
@@ -428,7 +432,6 @@ bool MainWindow::openProject(QString dir) {
         QObject::connect(editor->project, SIGNAL(reloadProject()), this, SLOT(on_action_Reload_Project_triggered()));
         QObject::connect(editor->project, SIGNAL(mapCacheCleared()), this, SLOT(onMapCacheCleared()));
         QObject::connect(editor->project, &Project::uncheckMonitorFilesAction, [this] () { ui->actionMonitor_Project_Files->setChecked(false); });
-        on_actionMonitor_Project_Files_triggered(porymapConfig.getMonitorFiles());
         editor->project->set_root(dir);
         success = loadDataStructures()
                && populateMapList()
@@ -1405,16 +1408,6 @@ void MainWindow::on_actionUse_Encounter_Json_triggered(bool checked)
     warning.setIcon(QMessageBox::Information);
     warning.exec();
     projectConfig.setEncounterJsonActive(checked);
-}
-
-void MainWindow::on_actionMonitor_Project_Files_triggered(bool checked)
-{
-    porymapConfig.setMonitorFiles(checked);
-}
-
-void MainWindow::on_actionUse_Poryscript_triggered(bool checked)
-{
-    projectConfig.setUsePoryScript(checked);
 }
 
 void MainWindow::addNewEvent(QString event_type)
