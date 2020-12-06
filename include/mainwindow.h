@@ -151,17 +151,9 @@ private slots:
 
     void on_mainTabBar_tabBarClicked(int index);
 
-    void on_actionZoom_In_triggered();
-    void on_actionZoom_Out_triggered();
     void on_actionBetter_Cursors_triggered();
     void on_actionPlayer_View_Rectangle_triggered();
     void on_actionCursor_Tile_Outline_triggered();
-    void on_actionPencil_triggered();
-    void on_actionPointer_triggered();
-    void on_actionFlood_Fill_triggered();
-    void on_actionEyedropper_triggered();
-    void on_actionMove_triggered();
-    void on_actionMap_Shift_triggered();
 
     void on_toolButton_deleteObject_clicked();
     void on_toolButton_Open_Scripts_clicked();
@@ -199,8 +191,6 @@ private slots:
     void on_checkBox_smartPaths_stateChanged(int selected);
     void on_checkBox_Visibility_clicked(bool checked);
     void on_checkBox_ToggleBorder_stateChanged(int arg1);
-
-    void resetMapViewScale();
 
     void on_actionTileset_Editor_triggered();
 

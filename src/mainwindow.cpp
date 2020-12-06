@@ -100,7 +100,7 @@ void MainWindow::initWindow() {
 }
 
 void MainWindow::initExtraShortcuts() {
-    new QShortcut(QKeySequence("Ctrl+0"), this, SLOT(resetMapViewScale()));
+    new QShortcut(QKeySequence("Ctrl+0"), this, [&]() { this->editor->scaleMapView(0); });
     new QShortcut(QKeySequence("Ctrl+G"), ui->checkBox_ToggleGrid, SLOT(toggle()));
     new QShortcut(QKeySequence("Ctrl+D"), this, SLOT(duplicate()));
     new QShortcut(QKeySequence::Delete, this, SLOT(on_toolButton_deleteObject_clicked()));
@@ -157,6 +157,12 @@ void MainWindow::initCustomUI() {
 void MainWindow::initExtraSignals() {
     connect(ui->newEventToolButton, SIGNAL(newEventAdded(QString)), this, SLOT(addNewEvent(QString)));
     connect(ui->tabWidget_EventType, &QTabWidget::currentChanged, this, &MainWindow::eventTabChanged);
+    connect(ui->actionPencil, &QAction::triggered, ui->toolButton_Paint, &QToolButton::click);
+    connect(ui->actionPointer, &QAction::triggered, ui->toolButton_Select, &QToolButton::click);
+    connect(ui->actionFlood_Fill, &QAction::triggered, ui->toolButton_Fill, &QToolButton::click);
+    connect(ui->actionEyedropper, &QAction::triggered, ui->toolButton_Dropper, &QToolButton::click);
+    connect(ui->actionMove, &QAction::triggered, ui->toolButton_Move, &QToolButton::click);
+    connect(ui->actionMap_Shift, &QAction::triggered, ui->toolButton_Shift, &QToolButton::click);
 }
 
 void MainWindow::initEditor() {
@@ -168,6 +174,8 @@ void MainWindow::initEditor() {
     connect(this->editor, SIGNAL(currentMetatilesSelectionChanged()), this, SLOT(currentMetatilesSelectionChanged()));
     connect(this->editor, SIGNAL(wildMonDataChanged()), this, SLOT(onWildMonDataChanged()));
     connect(this->editor, &Editor::mapRulerStatusChanged, this, &MainWindow::onMapRulerStatusChanged);
+    connect(ui->actionZoom_In, &QAction::triggered, [&]() { this->editor->scaleMapView(1); });
+    connect(ui->actionZoom_Out, &QAction::triggered, [&]() { this->editor->scaleMapView(-1); });
 
     this->loadUserSettings();
 
@@ -1365,14 +1373,6 @@ void MainWindow::on_mainTabBar_tabBarClicked(int index)
     }
 }
 
-void MainWindow::on_actionZoom_In_triggered() {
-    editor->scaleMapView(1);
-}
-
-void MainWindow::on_actionZoom_Out_triggered() {
-    editor->scaleMapView(-1);
-}
-
 void MainWindow::on_actionBetter_Cursors_triggered() {
     porymapConfig.setPrettyCursors(ui->actionBetter_Cursors->isChecked());
     this->editor->settings->betterCursors = ui->actionBetter_Cursors->isChecked();
@@ -1415,40 +1415,6 @@ void MainWindow::on_actionMonitor_Project_Files_triggered(bool checked)
 void MainWindow::on_actionUse_Poryscript_triggered(bool checked)
 {
     projectConfig.setUsePoryScript(checked);
-}
-
-void MainWindow::on_actionPencil_triggered()
-{
-    on_toolButton_Paint_clicked();
-}
-
-void MainWindow::on_actionPointer_triggered()
-{
-    on_toolButton_Select_clicked();
-}
-
-void MainWindow::on_actionFlood_Fill_triggered()
-{
-    on_toolButton_Fill_clicked();
-}
-
-void MainWindow::on_actionEyedropper_triggered()
-{
-    on_toolButton_Dropper_clicked();
-}
-
-void MainWindow::on_actionMove_triggered()
-{
-    on_toolButton_Move_clicked();
-}
-
-void MainWindow::on_actionMap_Shift_triggered()
-{
-    on_toolButton_Shift_clicked();
-}
-
-void MainWindow::resetMapViewScale() {
-    editor->scaleMapView(0);
 }
 
 void MainWindow::addNewEvent(QString event_type)
