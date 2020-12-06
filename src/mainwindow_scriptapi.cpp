@@ -187,7 +187,7 @@ void MainWindow::setDimensions(int width, int height) {
         return;
     this->editor->map->setDimensions(width, height);
     this->tryCommitMapChanges(true);
-    this->onMapNeedsRedrawing();
+    this->redrawMapScene();
 }
 
 void MainWindow::setWidth(int width) {
@@ -197,7 +197,7 @@ void MainWindow::setWidth(int width) {
         return;
     this->editor->map->setDimensions(width, this->editor->map->getHeight());
     this->tryCommitMapChanges(true);
-    this->onMapNeedsRedrawing();
+    this->redrawMapScene();
 }
 
 void MainWindow::setHeight(int height) {
@@ -207,7 +207,7 @@ void MainWindow::setHeight(int height) {
         return;
     this->editor->map->setDimensions(this->editor->map->getWidth(), height);
     this->tryCommitMapChanges(true);
-    this->onMapNeedsRedrawing();
+    this->redrawMapScene();
 }
 
 void MainWindow::clearOverlay() {

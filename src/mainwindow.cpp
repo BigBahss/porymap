@@ -102,7 +102,7 @@ void MainWindow::initWindow() {
 void MainWindow::initExtraShortcuts() {
     new QShortcut(QKeySequence("Ctrl+0"), this, [&]() { this->editor->scaleMapView(0); });
     new QShortcut(QKeySequence("Ctrl+G"), ui->checkBox_ToggleGrid, SLOT(toggle()));
-    new QShortcut(QKeySequence("Ctrl+D"), this, SLOT(duplicate()));
+    new QShortcut(QKeySequence("Ctrl+D"), this, [&]() { this->editor->duplicateSelectedEvents(); });
     new QShortcut(QKeySequence::Delete, this, SLOT(on_toolButton_deleteObject_clicked()));
     new QShortcut(QKeySequence("Backspace"), this, SLOT(on_toolButton_deleteObject_clicked()));
     ui->actionZoom_In->setShortcuts({QKeySequence("Ctrl++"), QKeySequence("Ctrl+=")});
@@ -167,6 +167,12 @@ void MainWindow::initExtraSignals() {
             &porymapConfig, &PorymapConfig::setMonitorFiles);
     connect(ui->actionUse_Poryscript, &QAction::triggered,
             &projectConfig, &ProjectConfig::setUsePoryScript);
+    connect(ui->action_NewMap, &QAction::triggered, [&]() { openNewMapPopupWindow(MapSortOrder::Group, 0); });
+    connect(ui->toolButton_Open_Scripts, &QToolButton::clicked, this, &MainWindow::openInTextEditor);
+    connect(ui->lineEdit_filterBox, &QLineEdit::textChanged, this, &MainWindow::applyMapListFilter);
+    connect(ui->action_Export_Map_Image, &QAction::triggered, this, [&]() { showExportMapImageWindow(false); });
+    connect(ui->actionExport_Stitched_Map_Image, &QAction::triggered, this, [&]() { showExportMapImageWindow(true); });
+    connect(ui->action_Exit, &QAction::triggered, &QApplication::quit);
 }
 
 void MainWindow::initEditor() {
@@ -176,10 +182,22 @@ void MainWindow::initEditor() {
     connect(this->editor, SIGNAL(loadMapRequested(QString, QString)), this, SLOT(onLoadMapRequested(QString, QString)));
     connect(this->editor, SIGNAL(warpEventDoubleClicked(QString,QString)), this, SLOT(openWarpMap(QString,QString)));
     connect(this->editor, SIGNAL(currentMetatilesSelectionChanged()), this, SLOT(currentMetatilesSelectionChanged()));
-    connect(this->editor, SIGNAL(wildMonDataChanged()), this, SLOT(onWildMonDataChanged()));
+    connect(this->editor, &Editor::wildMonDataChanged, this, [&]() { projectHasUnsavedChanges = true; });
     connect(this->editor, &Editor::mapRulerStatusChanged, this, &MainWindow::onMapRulerStatusChanged);
     connect(ui->actionZoom_In, &QAction::triggered, [&]() { this->editor->scaleMapView(1); });
     connect(ui->actionZoom_Out, &QAction::triggered, [&]() { this->editor->scaleMapView(-1); });
+    connect(ui->comboBox_ConnectionDirection, &NoScrollComboBox::currentTextChanged,
+            editor, &Editor::updateCurrentConnectionDirection);
+    connect(ui->spinBox_ConnectionOffset, QOverload<int>::of(&QSpinBox::valueChanged),
+            editor, &Editor::updateConnectionOffset);
+    connect(ui->pushButton_AddConnection, &QPushButton::clicked, editor, &Editor::addNewConnection);
+    connect(ui->pushButton_RemoveConnection, &QPushButton::clicked, editor, &Editor::removeCurrentConnection);
+    connect(ui->pushButton_NewWildMonGroup, &QPushButton::clicked, this, [&]() { editor->addNewWildMonGroup(this); });
+    connect(ui->pushButton_DeleteWildMonGroup, &QPushButton::clicked, editor, &Editor::deleteWildMonGroup);
+    connect(ui->pushButton_ConfigureEncountersJSON, &QPushButton::clicked,
+            this, [&]() { editor->configureEncounterJSON(this); });
+    connect(ui->tableWidget_CustomHeaderFields, &QTableWidget::cellChanged,
+            this, [&]() { editor->updateCustomMapHeaderValues(ui->tableWidget_CustomHeaderFields); });
 
     this->loadUserSettings();
 
@@ -342,12 +360,7 @@ void MainWindow::mapSortOrder_changed(QAction *action)
     }
 }
 
-void MainWindow::on_lineEdit_filterBox_textChanged(const QString &arg1)
-{
-    this->applyMapListFilter(arg1);
-}
-
-void MainWindow::applyMapListFilter(QString filterText)
+void MainWindow::applyMapListFilter(const QString &filterText)
 {
     mapListProxyModel->setFilterRegExp(QRegExp(filterText, Qt::CaseInsensitive, QRegExp::FixedString));
     if (filterText.isEmpty()) {
@@ -429,8 +442,8 @@ bool MainWindow::openProject(QString dir) {
     if (!already_open) {
         editor->closeProject();
         editor->project = new Project(this);
-        QObject::connect(editor->project, SIGNAL(reloadProject()), this, SLOT(on_action_Reload_Project_triggered()));
-        QObject::connect(editor->project, SIGNAL(mapCacheCleared()), this, SLOT(onMapCacheCleared()));
+        QObject::connect(editor->project, &Project::reloadProject, this, &MainWindow::on_action_Reload_Project_triggered);
+        QObject::connect(editor->project, &Project::mapCacheCleared, this, [&]() { editor->map = nullptr; });
         QObject::connect(editor->project, &Project::uncheckMonitorFilesAction, [this] () { ui->actionMonitor_Project_Files->setChecked(false); });
         editor->project->set_root(dir);
         success = loadDataStructures()
@@ -563,8 +576,8 @@ bool MainWindow::setMap(QString map_name, bool scrollTreeView) {
 
     showWindowTitle();
 
-    connect(editor->map, SIGNAL(mapChanged(Map*)), this, SLOT(onMapChanged(Map *)));
-    connect(editor->map, SIGNAL(mapNeedsRedrawing()), this, SLOT(onMapNeedsRedrawing()));
+    connect(editor->map, &Map::mapChanged, this, &MainWindow::updateMapList);
+    connect(editor->map, &Map::mapNeedsRedrawing, this, &MainWindow::redrawMapScene);
 
     setRecentMap(map_name);
     updateMapList();
@@ -1005,41 +1018,32 @@ void MainWindow::onOpenMapListContextMenu(const QPoint &point)
         QMenu* menu = new QMenu(this);
         QActionGroup* actions = new QActionGroup(menu);
         actions->addAction(menu->addAction("Add New Map to Group"))->setData(groupNum);
-        connect(actions, SIGNAL(triggered(QAction*)), this, SLOT(onAddNewMapToGroupClick(QAction*)));
+        connect(actions, &QActionGroup::triggered, [&](QAction *triggeredAction) {
+            int groupNum = triggeredAction->data().toInt();
+            openNewMapPopupWindow(MapSortOrder::Group, groupNum);
+        });
         menu->exec(QCursor::pos());
     } else if (itemType == "map_sec") {
         QString secName = selectedItem->data(Qt::UserRole).toString();
         QMenu* menu = new QMenu(this);
         QActionGroup* actions = new QActionGroup(menu);
         actions->addAction(menu->addAction("Add New Map to Area"))->setData(secName);
-        connect(actions, SIGNAL(triggered(QAction*)), this, SLOT(onAddNewMapToAreaClick(QAction*)));
+        connect(actions, &QActionGroup::triggered, [&](QAction *triggeredAction) {
+            QString secName = triggeredAction->data().toString();
+            openNewMapPopupWindow(MapSortOrder::Area, secName);
+        });
         menu->exec(QCursor::pos());
     } else if (itemType == "map_layout") {
         QString layoutId = selectedItem->data(MapListUserRoles::TypeRole2).toString();
         QMenu* menu = new QMenu(this);
         QActionGroup* actions = new QActionGroup(menu);
         actions->addAction(menu->addAction("Add New Map with Layout"))->setData(layoutId);
-        connect(actions, SIGNAL(triggered(QAction*)), this, SLOT(onAddNewMapToLayoutClick(QAction*)));
+        connect(actions, &QActionGroup::triggered, [&](QAction *triggeredAction) {
+            QString layoutId = triggeredAction->data().toString();
+            openNewMapPopupWindow(MapSortOrder::Layout, layoutId);
+        });
         menu->exec(QCursor::pos());
     }
-}
-
-void MainWindow::onAddNewMapToGroupClick(QAction* triggeredAction)
-{
-    int groupNum = triggeredAction->data().toInt();
-    openNewMapPopupWindow(MapSortOrder::Group, groupNum);
-}
-
-void MainWindow::onAddNewMapToAreaClick(QAction* triggeredAction)
-{
-    QString secName = triggeredAction->data().toString();
-    openNewMapPopupWindow(MapSortOrder::Area, secName);
-}
-
-void MainWindow::onAddNewMapToLayoutClick(QAction* triggeredAction)
-{
-    QString layoutId = triggeredAction->data().toString();
-    openNewMapPopupWindow(MapSortOrder::Layout, layoutId);
 }
 
 void MainWindow::onNewMapCreated() {
@@ -1099,10 +1103,6 @@ void MainWindow::openNewMapPopupWindow(int type, QVariant data) {
     connect(this->newmapprompt, SIGNAL(applied()), this, SLOT(onNewMapCreated()));
     connect(this->newmapprompt, &QObject::destroyed, [=](QObject *) { this->newmapprompt = nullptr; });
             this->newmapprompt->setAttribute(Qt::WA_DeleteOnClose);
-}
-
-void MainWindow::on_action_NewMap_triggered() {
-    openNewMapPopupWindow(MapSortOrder::Group, 0);
 }
 
 void MainWindow::on_actionNew_Tileset_triggered() {
@@ -1314,10 +1314,6 @@ void MainWindow::on_action_Save_Project_triggered()
     updateMapList();
 }
 
-void MainWindow::duplicate() {
-    editor->duplicateSelectedEvents();
-}
-
 // Open current map scripts in system default editor for .inc files
 void MainWindow::openInTextEditor() {
     bool usePoryscript = projectConfig.getUsePoryScript();
@@ -1342,11 +1338,6 @@ void MainWindow::on_tabWidget_2_currentChanged(int index)
     }
     editor->playerViewRect->setVisible(false);
     editor->cursorMapTileRect->setVisible(false);
-}
-
-void MainWindow::on_action_Exit_triggered()
-{
-    QApplication::quit();
 }
 
 void MainWindow::on_mainTabBar_tabBarClicked(int index)
@@ -2066,11 +2057,6 @@ void MainWindow::on_toolButton_deleteObject_clicked() {
     }
 }
 
-void MainWindow::on_toolButton_Open_Scripts_clicked()
-{
-    openInTextEditor();
-}
-
 void MainWindow::on_toolButton_Paint_clicked()
 {
     if (ui->mainTabBar->currentIndex() == 0)
@@ -2225,18 +2211,6 @@ void MainWindow::onLoadMapRequested(QString mapName, QString fromMapName) {
     editor->setSelectedConnectionFromMap(fromMapName);
 }
 
-void MainWindow::onMapChanged(Map *) {
-    updateMapList();
-}
-
-void MainWindow::onMapNeedsRedrawing() {
-    redrawMapScene();
-}
-
-void MainWindow::onMapCacheCleared() {
-    editor->map = nullptr;
-}
-
 void MainWindow::onTilesetsSaved(QString primaryTilesetLabel, QString secondaryTilesetLabel) {
     // If saved tilesets are currently in-use, update them and redraw
     // Otherwise overwrite the cache for the saved tileset
@@ -2257,10 +2231,6 @@ void MainWindow::onTilesetsSaved(QString primaryTilesetLabel, QString secondaryT
         redrawMapScene();
 }
 
-void MainWindow::onWildMonDataChanged() {
-    projectHasUnsavedChanges = true;
-}
-
 void MainWindow::onMapRulerStatusChanged(const QString &status) {
     if (status.isEmpty()) {
         label_MapRulerStatus->hide();
@@ -2276,14 +2246,6 @@ void MainWindow::moveEvent(QMoveEvent *event) {
     QMainWindow::moveEvent(event);
     if (label_MapRulerStatus->isVisible() && label_MapRulerStatus->parentWidget())
         label_MapRulerStatus->move(label_MapRulerStatus->parentWidget()->mapToGlobal(QPoint(6, 6)));
-}
-
-void MainWindow::on_action_Export_Map_Image_triggered() {
-    showExportMapImageWindow(false);
-}
-
-void MainWindow::on_actionExport_Stitched_Map_Image_triggered() {
-    showExportMapImageWindow(true);
 }
 
 void MainWindow::showExportMapImageWindow(bool stitchMode) {
@@ -2305,42 +2267,10 @@ void MainWindow::showExportMapImageWindow(bool stitchMode) {
     }
 }
 
-void MainWindow::on_comboBox_ConnectionDirection_currentIndexChanged(const QString &direction)
-{
-    editor->updateCurrentConnectionDirection(direction);
-}
-
-void MainWindow::on_spinBox_ConnectionOffset_valueChanged(int offset)
-{
-    editor->updateConnectionOffset(offset);
-}
-
 void MainWindow::on_comboBox_ConnectedMap_currentTextChanged(const QString &mapName)
 {
     if (editor->project->mapNames->contains(mapName))
         editor->setConnectionMap(mapName);
-}
-
-void MainWindow::on_pushButton_AddConnection_clicked()
-{
-    editor->addNewConnection();
-}
-
-void MainWindow::on_pushButton_RemoveConnection_clicked()
-{
-    editor->removeCurrentConnection();
-}
-
-void MainWindow::on_pushButton_NewWildMonGroup_clicked() {
-    editor->addNewWildMonGroup(this);
-}
-
-void MainWindow::on_pushButton_DeleteWildMonGroup_clicked() {
-    editor->deleteWildMonGroup();
-}
-
-void MainWindow::on_pushButton_ConfigureEncountersJSON_clicked() {
-    editor->configureEncounterJSON(this);
 }
 
 void MainWindow::on_comboBox_DiveMap_currentTextChanged(const QString &mapName)
@@ -2583,11 +2513,6 @@ void MainWindow::on_pushButton_DeleteCustomHeaderField_clicked()
 
         this->editor->updateCustomMapHeaderValues(this->ui->tableWidget_CustomHeaderFields);
     }
-}
-
-void MainWindow::on_tableWidget_CustomHeaderFields_cellChanged(int, int)
-{
-    this->editor->updateCustomMapHeaderValues(this->ui->tableWidget_CustomHeaderFields);
 }
 
 void MainWindow::on_horizontalSlider_MetatileZoom_valueChanged(int value) {

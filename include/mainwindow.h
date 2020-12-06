@@ -116,25 +116,17 @@ private slots:
     void on_action_Save_Project_triggered();
     void openWarpMap(QString map_name, QString warp_num);
 
-    void duplicate();
-
     void openInTextEditor();
 
     void onLoadMapRequested(QString, QString);
-    void onMapChanged(Map *map);
-    void onMapNeedsRedrawing();
     void onTilesetsSaved(QString, QString);
-    void onWildMonDataChanged();
     void openNewMapPopupWindow(int, QVariant);
     void onNewMapCreated();
-    void onMapCacheCleared();
     void onMapRulerStatusChanged(const QString &);
 
-    void on_action_NewMap_triggered();
     void on_actionNew_Tileset_triggered();
     void on_action_Save_triggered();
     void on_tabWidget_2_currentChanged(int index);
-    void on_action_Exit_triggered();
     void on_comboBox_Song_currentTextChanged(const QString &arg1);
     void on_comboBox_Location_currentTextChanged(const QString &arg1);
     void on_comboBox_Weather_currentTextChanged(const QString &arg1);
@@ -154,7 +146,6 @@ private slots:
     void on_actionCursor_Tile_Outline_triggered();
 
     void on_toolButton_deleteObject_clicked();
-    void on_toolButton_Open_Scripts_clicked();
 
     void addNewEvent(QString);
     void updateSelectedObjects();
@@ -168,19 +159,9 @@ private slots:
     void on_toolButton_Shift_clicked();
 
     void onOpenMapListContextMenu(const QPoint &point);
-    void onAddNewMapToGroupClick(QAction* triggeredAction);
-    void onAddNewMapToAreaClick(QAction* triggeredAction);
-    void onAddNewMapToLayoutClick(QAction* triggeredAction);
     void currentMetatilesSelectionChanged();
 
-    void on_action_Export_Map_Image_triggered();
-    void on_actionExport_Stitched_Map_Image_triggered();
-
-    void on_comboBox_ConnectionDirection_currentIndexChanged(const QString &arg1);
-    void on_spinBox_ConnectionOffset_valueChanged(int offset);
     void on_comboBox_ConnectedMap_currentTextChanged(const QString &mapName);
-    void on_pushButton_AddConnection_clicked();
-    void on_pushButton_RemoveConnection_clicked();
     void on_comboBox_DiveMap_currentTextChanged(const QString &mapName);
     void on_comboBox_EmergeMap_currentTextChanged(const QString &mapName);
     void on_comboBox_PrimaryTileset_currentTextChanged(const QString &arg1);
@@ -193,8 +174,6 @@ private slots:
     void on_actionTileset_Editor_triggered();
 
     void mapSortOrder_changed(QAction *action);
-
-    void on_lineEdit_filterBox_textChanged(const QString &arg1);
 
     void moveEvent(QMoveEvent *event);
     void closeEvent(QCloseEvent *);
@@ -210,11 +189,7 @@ private slots:
     void on_actionThemes_triggered();
     void on_pushButton_AddCustomHeaderField_clicked();
     void on_pushButton_DeleteCustomHeaderField_clicked();
-    void on_tableWidget_CustomHeaderFields_cellChanged(int row, int column);
     void on_horizontalSlider_MetatileZoom_valueChanged(int value);
-    void on_pushButton_NewWildMonGroup_clicked();
-    void on_pushButton_DeleteWildMonGroup_clicked();
-    void on_pushButton_ConfigureEncountersJSON_clicked();
 
     void on_actionRegion_Map_Editor_triggered();
 
@@ -288,7 +263,7 @@ private:
     void initMapSortOrder();
     void setProjectSpecificUIVisibility();
     void loadUserSettings();
-    void applyMapListFilter(QString filterText);
+    void applyMapListFilter(const QString &filterText);
     void restoreWindowState();
     void setTheme(QString);
     bool openRecentProject();
