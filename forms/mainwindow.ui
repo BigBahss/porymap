@@ -2350,6 +2350,9 @@
                   </item>
                   <item>
                    <widget class="NoScrollComboBox" name="comboBox_ConnectionDirection">
+                    <property name="editable">
+                     <bool>false</bool>
+                    </property>
                     <property name="toolTip">
                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The direction of the connection.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                     </property>
