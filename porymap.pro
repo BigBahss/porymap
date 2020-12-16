@@ -12,7 +12,7 @@ TARGET = porymap
 TEMPLATE = app
 RC_ICONS = resources/icons/porymap-icon-2.ico
 ICON = resources/icons/porymap.icns
-QMAKE_CXXFLAGS += -std=c++11 -Wall
+QMAKE_CXXFLAGS += -std=c++14 -Wall
 
 SOURCES += src/core/block.cpp \
     src/core/blockdata.cpp \
@@ -75,6 +75,7 @@ SOURCES += src/core/block.cpp \
     src/ui/shortcutseditor.cpp \
     src/ui/multikeyedit.cpp \
     src/ui/preferenceeditor.cpp \
+    src/ui/mousecontrol.cpp \
     src/config.cpp \
     src/editor.cpp \
     src/main.cpp \
@@ -148,6 +149,7 @@ HEADERS  += include/core/block.h \
     include/ui/shortcutseditor.h \
     include/ui/multikeyedit.h \
     include/ui/preferenceeditor.h \
+    include/ui/mousecontrol.h \
     include/config.h \
     include/editor.h \
     include/mainwindow.h \
