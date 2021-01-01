@@ -76,6 +76,7 @@ SOURCES += src/core/block.cpp \
     src/ui/multikeyedit.cpp \
     src/ui/preferenceeditor.cpp \
     src/ui/mousecontrol.cpp \
+    src/ui/mousecontroledit.cpp \
     src/config.cpp \
     src/editor.cpp \
     src/main.cpp \
@@ -150,6 +151,7 @@ HEADERS  += include/core/block.h \
     include/ui/multikeyedit.h \
     include/ui/preferenceeditor.h \
     include/ui/mousecontrol.h \
+    include/ui/mousecontroledit.h \
     include/config.h \
     include/editor.h \
     include/mainwindow.h \
