@@ -3,6 +3,7 @@
 #include <QtEvents>
 #include <QGraphicsSceneEvent>
 #include <QStringList>
+#include <QDebug>
 
 static QString stringFromMouseButton(Qt::MouseButton button);
 static Qt::MouseButton mouseButtonFromString(const QString &str);

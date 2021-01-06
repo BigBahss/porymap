@@ -49,6 +49,8 @@ public:
     QPoint selection_origin;
     QList<QPoint> selection;
     virtual void paint(QGraphicsSceneMouseEvent*);
+    void paintNormal(int x, int y, bool fromScriptCall = false);
+    void paintSmartPath(int x, int y, bool fromScriptCall = false);
     virtual void floodFill(QGraphicsSceneMouseEvent*);
     virtual void magicFill(QGraphicsSceneMouseEvent*);
     void magicFill(int x, int y, uint16_t metatileId, bool fromScriptCall = false);
@@ -75,12 +77,10 @@ public:
     void shift(int xDelta, int yDelta, bool fromScriptCall = false);
     virtual void draw(bool ignoreCache = false);
     void updateMetatileSelection(QGraphicsSceneMouseEvent *event);
-    void paintNormal(int x, int y, bool fromScriptCall = false);
     void lockNondominantAxis(QGraphicsSceneMouseEvent *event);
     QPoint adjustCoords(QPoint pos);
 
 private:
-    void paintSmartPath(int x, int y, bool fromScriptCall = false);
     static QList<int> smartPathTable;
 
     unsigned actionId_ = 0;

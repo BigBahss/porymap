@@ -3,6 +3,7 @@
 #include "config.h"
 #include "multikeyedit.h"
 #include "log.h"
+#include "mousecontroledit.h"
 
 #include <QGroupBox>
 #include <QFormLayout>
@@ -95,6 +96,9 @@ void ShortcutsEditor::populateMainContainer() {
 
         addNewMultiKeyEdit(object, shortcutContext);
     }
+    ui->frame_2->setLayout(new QVBoxLayout(ui->frame_2));
+    auto *mce = new MouseControlEdit(ui->frame_2);
+    ui->frame_2->layout()->addWidget(mce);
 }
 
 // The context for which the object's shortcut is active (Displayed in group box title).

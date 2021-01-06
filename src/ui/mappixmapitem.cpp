@@ -10,33 +10,34 @@ void MapPixmapItem::paint(QGraphicsSceneMouseEvent *event) {
     if (map) {
         if (event->type() == QEvent::GraphicsSceneMouseRelease) {
             actionId_++;
+            return;
+        }
+
+        QPoint pos = Metatile::coordFromPixmapCoord(event->pos());
+
+        // Set straight paths on/off and snap to the dominant axis when on
+        if (settings->straightPathsControl.accepts(event)) {
+            this->lockNondominantAxis(event);
+            pos = this->adjustCoords(pos);
         } else {
-            QPoint pos = Metatile::coordFromPixmapCoord(event->pos());
+            this->prevStraightPathState = false;
+            this->lockedAxis = MapPixmapItem::Axis::None;
+        }
 
-            // Set straight paths on/off and snap to the dominant axis when on
-            if (event->modifiers() & Qt::ControlModifier) {
-                this->lockNondominantAxis(event);
-                pos = this->adjustCoords(pos);
+        // Paint onto the map.
+        bool toggleSmartPaths = settings->smartPathsControl.accepts(event);
+        QPoint selectionDimensions = this->metatileSelector->getSelectionDimensions();
+        if (settings->smartPathsEnabled) {
+            if (!toggleSmartPaths && selectionDimensions.x() == 3 && selectionDimensions.y() == 3) {
+                paintSmartPath(pos.x(), pos.y());
             } else {
-                this->prevStraightPathState = false;
-                this->lockedAxis = MapPixmapItem::Axis::None;
+                paintNormal(pos.x(), pos.y());
             }
-
-            // Paint onto the map.
-            bool shiftPressed = event->modifiers() & Qt::ShiftModifier;
-            QPoint selectionDimensions = this->metatileSelector->getSelectionDimensions();
-            if (settings->smartPathsEnabled) {
-                if (!shiftPressed && selectionDimensions.x() == 3 && selectionDimensions.y() == 3) {
-                    paintSmartPath(pos.x(), pos.y());
-                } else {
-                    paintNormal(pos.x(), pos.y());
-                }
+        } else {
+            if (toggleSmartPaths && selectionDimensions.x() == 3 && selectionDimensions.y() == 3) {
+                paintSmartPath(pos.x(), pos.y());
             } else {
-                if (shiftPressed && selectionDimensions.x() == 3 && selectionDimensions.y() == 3) {
-                    paintSmartPath(pos.x(), pos.y());
-                } else {
-                    paintNormal(pos.x(), pos.y());
-                }
+                paintNormal(pos.x(), pos.y());
             }
         }
     }
@@ -50,7 +51,7 @@ void MapPixmapItem::shift(QGraphicsSceneMouseEvent *event) {
             QPoint pos = Metatile::coordFromPixmapCoord(event->pos());
 
             // Set straight paths on/off and snap to the dominant axis when on
-            if (event->modifiers() & Qt::ControlModifier) {
+            if (settings->straightPathsControl.accepts(event)) {
                 this->lockNondominantAxis(event);
                 pos = this->adjustCoords(pos);
             } else {
@@ -287,7 +288,7 @@ void MapPixmapItem::lockNondominantAxis(QGraphicsSceneMouseEvent *event) {
         this->straight_path_initial_x = pos.x();
         this->straight_path_initial_y = pos.y();
     }
-    
+
     // Only lock an axis when the current position != initial
     int xDiff = pos.x() - this->straight_path_initial_x;
     int yDiff = pos.y() - this->straight_path_initial_y;
@@ -363,14 +364,24 @@ void MapPixmapItem::floodFill(QGraphicsSceneMouseEvent *event) {
             QPoint pos = Metatile::coordFromPixmapCoord(event->pos());
             Block *block = map->getBlock(pos.x(), pos.y());
             QList<uint16_t> *selectedMetatiles = this->metatileSelector->getSelectedMetatiles();
-            QPoint selectionDimensions = this->metatileSelector->getSelectionDimensions();
             int tile = selectedMetatiles->first();
-            if (selectedMetatiles->count() > 1 || (block && block->tile != tile)) {
-                bool smartPathsEnabled = event->modifiers() & Qt::ShiftModifier;
-                if ((this->settings->smartPathsEnabled || smartPathsEnabled) && selectionDimensions.x() == 3 && selectionDimensions.y() == 3)
-                    this->floodFillSmartPath(pos.x(), pos.y());
-                else
-                    this->floodFill(pos.x(), pos.y());
+            if (selectedMetatiles->count() <= 1 && (!block || block->tile == tile))
+                return;
+
+            bool toggleSmartPaths = settings->smartPathsControl.accepts(event);
+            QPoint selectionDimensions = this->metatileSelector->getSelectionDimensions();
+            if (settings->smartPathsEnabled) {
+                if (!toggleSmartPaths && selectionDimensions.x() == 3 && selectionDimensions.y() == 3) {
+                    floodFillSmartPath(pos.x(), pos.y());
+                } else {
+                    floodFill(pos.x(), pos.y());
+                }
+            } else {
+                if (toggleSmartPaths && selectionDimensions.x() == 3 && selectionDimensions.y() == 3) {
+                    floodFillSmartPath(pos.x(), pos.y());
+                } else {
+                    floodFill(pos.x(), pos.y());
+                }
             }
         }
     }
@@ -671,7 +682,7 @@ void MapPixmapItem::floodFillSmartPath(int initialX, int initialY, bool fromScri
             delete oldMetatiles;
         } else {
             map->editHistory.push(new BucketFillMetatile(map, oldMetatiles, newMetatiles, actionId_));
-        }    
+        }
     }
 
     delete[] visited;
