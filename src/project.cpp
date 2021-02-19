@@ -516,7 +516,7 @@ bool Project::readMapLayouts() {
             logError(QString("Layout %1 is missing field(s) in %2.").arg(i).arg(layoutsFilepath));
             return false;
         }
-        MapLayout *layout = new MapLayout();
+        std::shared_ptr<MapLayout> layout = std::make_shared<MapLayout>();
         layout->id = layoutObj["id"].toString();
         if (layout->id.isEmpty()) {
             logError(QString("Missing 'id' value on layout %1 in %2").arg(i).arg(layoutsFilepath));
@@ -602,7 +602,7 @@ void Project::saveMapLayouts() {
     bool useCustomBorderSize = projectConfig.getUseCustomBorderSize();
     OrderedJson::array layoutsArr;
     for (QString layoutId : mapLayoutsTableMaster) {
-        MapLayout *layout = mapLayouts.value(layoutId);
+        MapLayout *layout = mapLayouts.value(layoutId).get();
         OrderedJson::object layoutObj;
         layoutObj["id"] = layout->id;
         layoutObj["name"] = layout->name;
@@ -634,7 +634,7 @@ void Project::ignoreWatchedFileTemporarily(QString filepath) {
 }
 
 void Project::setNewMapLayout(Map* map) {
-    MapLayout *layout = new MapLayout();
+    std::shared_ptr<MapLayout> layout = std::make_shared<MapLayout>();
     layout->id = MapLayout::layoutConstantFromName(map->name);
     layout->name = QString("%1_Layout").arg(map->name);
     layout->width = QString::number(getDefaultMapSize());
@@ -1428,9 +1428,8 @@ void Project::updateMapLayout(Map* map) {
     }
 
     // Deep copy
-    MapLayout *layout = mapLayouts.value(map->layoutId);
-    MapLayout *newLayout = new MapLayout();
-    *newLayout = *layout;
+    MapLayout *layout = mapLayouts.value(map->layoutId).get();
+    std::shared_ptr<MapLayout> newLayout = std::make_shared<MapLayout>(*layout);
     mapLayoutsMaster.insert(map->layoutId, newLayout);
 }
 

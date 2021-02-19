@@ -10,7 +10,9 @@
 
 class MapLayout {
 public:
-    MapLayout() {}
+    MapLayout() = default;
+    MapLayout(const MapLayout &) = default;
+    MapLayout &operator=(const MapLayout &) = default;
     static QString layoutConstantFromName(QString mapName);
     QString id;
     QString name;

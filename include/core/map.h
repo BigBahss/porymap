@@ -13,6 +13,7 @@
 #include <QObject>
 #include <QGraphicsPixmapItem>
 #include <math.h>
+#include <memory>
 
 #define DEFAULT_BORDER_WIDTH 2
 #define DEFAULT_BORDER_HEIGHT 2
@@ -52,7 +53,7 @@ public:
     QString sharedEventsMap = "";
     QString sharedScriptsMap = "";
     QMap<QString, QString> customHeaders;
-    MapLayout *layout;
+    std::shared_ptr<MapLayout> layout;
     bool isPersistedToFile = true;
     bool needsLayoutDir = true;
     QImage collision_image;

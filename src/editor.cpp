@@ -761,7 +761,7 @@ void Editor::setCurrentConnectionDirection(QString curDirection) {
 
     selected_connection_item->connection->direction = curDirection;
 
-    QPixmap pixmap = connected_map->renderConnection(*selected_connection_item->connection, map->layout);
+    QPixmap pixmap = connected_map->renderConnection(*selected_connection_item->connection, map->layout.get());
     int offset = selected_connection_item->connection->offset.toInt(nullptr, 0);
     selected_connection_item->initialOffset = offset;
     int x = 0, y = 0;
@@ -1506,7 +1506,7 @@ void Editor::createConnectionItem(MapConnection* connection, bool hide) {
         return;
     }
 
-    QPixmap pixmap = connected_map->renderConnection(*connection, map->layout);
+    QPixmap pixmap = connected_map->renderConnection(*connection, map->layout.get());
     int offset = connection->offset.toInt(nullptr, 0);
     int x = 0, y = 0;
     if (connection->direction == "up") {
@@ -1611,7 +1611,7 @@ void Editor::updateMapConnections() {
         if (!connected_map)
             continue;
 
-        QPixmap pixmap = connected_map->renderConnection(*(connection_edit_items[i]->connection), map->layout);
+        QPixmap pixmap = connected_map->renderConnection(*(connection_edit_items[i]->connection), map->layout.get());
         connection_items[i]->setPixmap(pixmap);
         connection_edit_items[i]->basePixmap = pixmap;
         connection_edit_items[i]->setPixmap(pixmap);

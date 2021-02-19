@@ -9,6 +9,7 @@
 #include <QSet>
 #include <QPalette>
 #include <QStringList>
+#include <memory>
 
 NewMapPopup::NewMapPopup(QWidget *parent, Project *project) :
     QMainWindow(parent),
@@ -182,7 +183,7 @@ void NewMapPopup::on_pushButton_NewMap_Accept_clicked() {
         return;
     }
     Map *newMap = new Map;
-    MapLayout *layout;
+    std::shared_ptr<MapLayout> layout;
 
     // If map name is not unique, use default value. Also use only valid characters.
     // After stripping invalid characters, strip any leading digits.
@@ -205,7 +206,7 @@ void NewMapPopup::on_pushButton_NewMap_Accept_clicked() {
         layout = this->project->mapLayouts.value(this->layoutId);
         newMap->needsLayoutDir = false;
     } else {
-        layout = new MapLayout;
+        layout = std::make_shared<MapLayout>();
         layout->id = MapLayout::layoutConstantFromName(newMapName);
         layout->name = QString("%1_Layout").arg(newMap->name);
         layout->width = QString::number(this->ui->spinBox_NewMap_Width->value());

@@ -17,6 +17,7 @@
 #include <QStandardItem>
 #include <QVariant>
 #include <QFileSystemWatcher>
+#include <memory>
 
 static QString NONE_MAP_CONSTANT = "MAP_NONE";
 static QString NONE_MAP_NAME = "None";
@@ -46,8 +47,8 @@ public:
     QStringList mapLayoutsTable;
     QStringList mapLayoutsTableMaster;
     QString layoutsLabel;
-    QMap<QString, MapLayout*> mapLayouts;
-    QMap<QString, MapLayout*> mapLayoutsMaster;
+    QMap<QString, std::shared_ptr<MapLayout>> mapLayouts;
+    QMap<QString, std::shared_ptr<MapLayout>> mapLayoutsMaster;
     QMap<QString, QString> mapSecToMapHoverName;
     QMap<QString, int> mapSectionNameToValue;
     QMap<int, QString> mapSectionValueToName;

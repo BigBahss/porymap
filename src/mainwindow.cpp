@@ -1001,7 +1001,7 @@ void MainWindow::sortMapList() {
             QMap<QString, int> layoutIndices;
             for (int i = 0; i < project->mapLayoutsTable.length(); i++) {
                 QString layoutId = project->mapLayoutsTable.value(i);
-                MapLayout *layout = project->mapLayouts.value(layoutId);
+                MapLayout *layout = project->mapLayouts.value(layoutId).get();
                 QStandardItem *layoutItem = new QStandardItem;
                 layoutItem->setText(layout->name);
                 layoutItem->setIcon(folderIcon);
