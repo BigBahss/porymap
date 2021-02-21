@@ -67,6 +67,7 @@ MainWindow::MainWindow(QWidget *parent) :
 MainWindow::~MainWindow()
 {
     delete label_MapRulerStatus;
+    delete undoView;
     delete ui;
 }
 
@@ -252,7 +253,7 @@ void MainWindow::initEditor() {
     ui->menuEdit->addAction(undoAction);
     ui->menuEdit->addAction(redoAction);
 
-    QUndoView *undoView = new QUndoView(&editor->editGroup);
+    undoView = new QUndoView(&editor->editGroup);
     undoView->setWindowTitle(tr("Edit History"));
     undoView->setAttribute(Qt::WA_QuitOnClose, false);
 
@@ -260,7 +261,7 @@ void MainWindow::initEditor() {
     QAction *showHistory = new QAction("Show Edit History...", this);
     showHistory->setObjectName("action_ShowEditHistory");
     showHistory->setShortcut(QKeySequence("Ctrl+E"));
-    connect(showHistory, &QAction::triggered, [undoView](){ undoView->show(); });
+    connect(showHistory, &QAction::triggered, [&]() { undoView->show(); });
 
     ui->menuEdit->addAction(showHistory);
 

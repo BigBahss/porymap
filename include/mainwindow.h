@@ -238,6 +238,7 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
+    QUndoView *undoView = nullptr;
     QLabel *label_MapRulerStatus = nullptr;
     QPointer<TilesetEditor> tilesetEditor = nullptr;
     QPointer<RegionMapEditor> regionMapEditor = nullptr;
