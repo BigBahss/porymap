@@ -1374,9 +1374,9 @@ void Editor::displayMapMovementPermissions() {
 }
 
 void Editor::displayBorderMetatiles() {
-    if (selected_border_metatiles_item && selected_border_metatiles_item->scene()) {
-        selected_border_metatiles_item->scene()->removeItem(selected_border_metatiles_item);
+    if (selected_border_metatiles_item && scene_selected_border_metatiles) {
         delete selected_border_metatiles_item;
+        delete scene_selected_border_metatiles;
     }
 
     scene_selected_border_metatiles = new QGraphicsScene;
@@ -1389,9 +1389,9 @@ void Editor::displayBorderMetatiles() {
 }
 
 void Editor::displayCurrentMetatilesSelection() {
-    if (current_metatile_selection_item && current_metatile_selection_item->scene()) {
-        current_metatile_selection_item->scene()->removeItem(current_metatile_selection_item);
+    if (current_metatile_selection_item && scene_current_metatile_selection) {
         delete current_metatile_selection_item;
+        delete scene_current_metatile_selection;
     }
 
     scene_current_metatile_selection = new QGraphicsScene;
