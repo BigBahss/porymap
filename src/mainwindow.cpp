@@ -275,7 +275,6 @@ void MainWindow::initMiscHeapObjects() {
     mapOpenedIcon = new QIcon(QStringLiteral(":/icons/map_opened.ico"));
 
     mapListModel = new QStandardItemModel;
-    mapGroupItemsList = new QList<QStandardItem*>;
     mapListProxyModel = new FilterChildrenProxyModel;
 
     mapListProxyModel->setSourceModel(mapListModel);
@@ -941,7 +940,7 @@ void MainWindow::sortMapList() {
 
     ui->mapList->setUpdatesEnabled(false);
     mapListModel->clear();
-    mapGroupItemsList->clear();
+    mapGroupItemsList.clear();
     QStandardItem *root = mapListModel->invisibleRootItem();
 
     switch (mapSortOrder)
@@ -957,7 +956,7 @@ void MainWindow::sortMapList() {
                 group->setData("map_group", MapListUserRoles::TypeRole);
                 group->setData(i, MapListUserRoles::GroupRole);
                 root->appendRow(group);
-                mapGroupItemsList->append(group);
+                mapGroupItemsList.append(group);
                 QStringList names = project->groupedMapNames.value(i);
                 for (int j = 0; j < names.length(); j++) {
                     QString map_name = names.value(j);
@@ -980,7 +979,7 @@ void MainWindow::sortMapList() {
                 mapsec->setData("map_sec", MapListUserRoles::TypeRole);
                 mapsec->setData(i, MapListUserRoles::GroupRole);
                 root->appendRow(mapsec);
-                mapGroupItemsList->append(mapsec);
+                mapGroupItemsList.append(mapsec);
                 mapsecToGroupNum.insert(mapsec_name, i);
             }
             for (int i = 0; i < project->groupNames.length(); i++) {
@@ -989,7 +988,7 @@ void MainWindow::sortMapList() {
                     QString map_name = names.value(j);
                     QStandardItem *map = createMapItem(map_name, i, j);
                     QString location = project->readMapLocation(map_name);
-                    QStandardItem *mapsecItem = mapGroupItemsList->at(mapsecToGroupNum[location]);
+                    QStandardItem *mapsecItem = mapGroupItemsList.at(mapsecToGroupNum[location]);
                     mapsecItem->setIcon(mapFolderIcon);
                     mapsecItem->appendRow(map);
                     mapListIndexes.insert(map_name, map->index());
@@ -1012,7 +1011,7 @@ void MainWindow::sortMapList() {
                 layoutItem->setData(layout->id, MapListUserRoles::TypeRole2);
                 layoutItem->setData(i, MapListUserRoles::GroupRole);
                 root->appendRow(layoutItem);
-                mapGroupItemsList->append(layoutItem);
+                mapGroupItemsList.append(layoutItem);
                 layoutIndices[layoutId] = i;
             }
             for (int i = 0; i < project->groupNames.length(); i++) {
@@ -1021,7 +1020,7 @@ void MainWindow::sortMapList() {
                     QString map_name = names.value(j);
                     QStandardItem *map = createMapItem(map_name, i, j);
                     QString layoutId = project->readMapLayoutId(map_name);
-                    QStandardItem *layoutItem = mapGroupItemsList->at(layoutIndices.value(layoutId));
+                    QStandardItem *layoutItem = mapGroupItemsList.at(layoutIndices.value(layoutId));
                     layoutItem->setIcon(mapFolderIcon);
                     layoutItem->appendRow(map);
                     mapListIndexes.insert(map_name, map->index());
@@ -1116,7 +1115,7 @@ void MainWindow::onNewMapCreated() {
     editor->project->saveMap(newMap);
     editor->project->saveAllDataStructures();
 
-    QStandardItem* groupItem = mapGroupItemsList->at(newMapGroup);
+    QStandardItem* groupItem = mapGroupItemsList.at(newMapGroup);
     int numMapsInGroup = groupItem->rowCount();
 
     QStandardItem *newMapItem = createMapItem(newMapName, newMapGroup, numMapsInGroup);

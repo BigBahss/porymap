@@ -248,7 +248,7 @@ private:
     QPointer<PreferenceEditor> preferenceEditor = nullptr;
     FilterChildrenProxyModel *mapListProxyModel;
     QStandardItemModel *mapListModel;
-    QList<QStandardItem*> *mapGroupItemsList;
+    QList<QStandardItem*> mapGroupItemsList;
     QMap<QString, QModelIndex> mapListIndexes;
     Editor *editor = nullptr;
     QIcon* mapIcon;
