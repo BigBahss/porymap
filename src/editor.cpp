@@ -2011,20 +2011,6 @@ bool Editor::eventLimitReached(Map *map, QString event_type)
     return false;
 }
 
-void Editor::deleteEvent(Event *event) {
-    Map *map = project->getMap(event->get("map_name"));
-    if (map) {
-        map->removeEvent(event);
-        if (event->pixmapItem) {
-            events_group->removeFromGroup(event->pixmapItem);
-            delete event->pixmapItem;
-            event->pixmapItem = nullptr;
-        }
-    }
-    //selected_events->removeAll(event);
-    //updateSelectedObjects();
-}
-
 void Editor::openMapScripts() const {
     const QString scriptPath = project->getMapScriptsFilePath(map->name);
     openInTextEditor(scriptPath);

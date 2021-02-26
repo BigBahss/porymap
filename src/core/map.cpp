@@ -17,11 +17,11 @@ Map::Map(QObject *parent) : QObject(parent)
 }
 
 Map::~Map() {
-    // delete all associated events
-    while (!ownedEvents.isEmpty()) {
-        Event *last = ownedEvents.takeLast();
-        if (last) delete last;
+    for (const auto &event_list : events) {
+        for (auto *event : event_list)
+            delete event;
     }
+    events.clear();
 }
 
 void Map::setName(QString mapName) {

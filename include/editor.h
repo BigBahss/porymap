@@ -97,7 +97,6 @@ public:
     void selectMapEvent(DraggablePixmapItem *object);
     void selectMapEvent(DraggablePixmapItem *object, bool toggle);
     DraggablePixmapItem *addNewEvent(QString event_type);
-    void deleteEvent(Event *);
     void updateSelectedEvents();
     void duplicateSelectedEvents();
     void redrawObject(DraggablePixmapItem *item);
