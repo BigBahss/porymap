@@ -274,8 +274,8 @@ void MainWindow::initMiscHeapObjects() {
     mapEditedIcon = new QIcon(QStringLiteral(":/icons/map_edited.ico"));
     mapOpenedIcon = new QIcon(QStringLiteral(":/icons/map_opened.ico"));
 
-    mapListModel = new QStandardItemModel;
-    mapListProxyModel = new FilterChildrenProxyModel;
+    mapListModel = new QStandardItemModel(this);
+    mapListProxyModel = new FilterChildrenProxyModel(this);
 
     mapListProxyModel->setSourceModel(mapListModel);
     ui->mapList->setModel(mapListProxyModel);
@@ -1062,25 +1062,25 @@ void MainWindow::onOpenMapListContextMenu(const QPoint &point)
     if (itemType == "map_group") {
         QString groupName = selectedItem->data(Qt::UserRole).toString();
         int groupNum = selectedItem->data(MapListUserRoles::GroupRole).toInt();
-        QMenu* menu = new QMenu(this);
-        QActionGroup* actions = new QActionGroup(menu);
-        actions->addAction(menu->addAction("Add New Map to Group"))->setData(groupNum);
+        QMenu menu(this);
+        QActionGroup* actions = new QActionGroup(&menu);
+        actions->addAction(menu.addAction("Add New Map to Group"))->setData(groupNum);
         connect(actions, &QActionGroup::triggered, this, &MainWindow::onAddNewMapToGroupClick);
-        menu->exec(QCursor::pos());
+        menu.exec(QCursor::pos());
     } else if (itemType == "map_sec") {
         QString secName = selectedItem->data(Qt::UserRole).toString();
-        QMenu* menu = new QMenu(this);
-        QActionGroup* actions = new QActionGroup(menu);
-        actions->addAction(menu->addAction("Add New Map to Area"))->setData(secName);
+        QMenu menu(this);
+        QActionGroup* actions = new QActionGroup(&menu);
+        actions->addAction(menu.addAction("Add New Map to Area"))->setData(secName);
         connect(actions, &QActionGroup::triggered, this, &MainWindow::onAddNewMapToAreaClick);
-        menu->exec(QCursor::pos());
+        menu.exec(QCursor::pos());
     } else if (itemType == "map_layout") {
         QString layoutId = selectedItem->data(MapListUserRoles::TypeRole2).toString();
-        QMenu* menu = new QMenu(this);
-        QActionGroup* actions = new QActionGroup(menu);
-        actions->addAction(menu->addAction("Add New Map with Layout"))->setData(layoutId);
+        QMenu menu(this);
+        QActionGroup* actions = new QActionGroup(&menu);
+        actions->addAction(menu.addAction("Add New Map with Layout"))->setData(layoutId);
         connect(actions, &QActionGroup::triggered, this, &MainWindow::onAddNewMapToLayoutClick);
-        menu->exec(QCursor::pos());
+        menu.exec(QCursor::pos());
     }
 }
 
@@ -1165,9 +1165,9 @@ void MainWindow::on_action_NewMap_triggered() {
 }
 
 void MainWindow::on_actionNew_Tileset_triggered() {
-    NewTilesetDialog *createTilesetDialog = new NewTilesetDialog(editor->project, this);
-    if(createTilesetDialog->exec() == QDialog::Accepted){
-        if(createTilesetDialog->friendlyName.isEmpty()) {
+    NewTilesetDialog createTilesetDialog(editor->project, this);
+    if(createTilesetDialog.exec() == QDialog::Accepted){
+        if(createTilesetDialog.friendlyName.isEmpty()) {
             logError(QString("Tried to create a directory with an empty name."));
             QMessageBox msgBox(this);
             msgBox.setText("Failed to add new tileset.");
@@ -1178,13 +1178,13 @@ void MainWindow::on_actionNew_Tileset_triggered() {
             msgBox.exec();
             return;
         }
-        QString fullDirectoryPath = editor->project->root + createTilesetDialog->path;
+        QString fullDirectoryPath = editor->project->root + createTilesetDialog.path;
         QDir directory;
         if(directory.exists(fullDirectoryPath)) {
-            logError(QString("Could not create tileset \"%1\", the folder \"%2\" already exists.").arg(createTilesetDialog->friendlyName, fullDirectoryPath));
+            logError(QString("Could not create tileset \"%1\", the folder \"%2\" already exists.").arg(createTilesetDialog.friendlyName, fullDirectoryPath));
             QMessageBox msgBox(this);
             msgBox.setText("Failed to add new tileset.");
-            QString message = QString("The folder for tileset \"%1\" already exists. View porymap.log for specific errors.").arg(createTilesetDialog->friendlyName);
+            QString message = QString("The folder for tileset \"%1\" already exists. View porymap.log for specific errors.").arg(createTilesetDialog.friendlyName);
             msgBox.setInformativeText(message);
             msgBox.setDefaultButton(QMessageBox::Ok);
             msgBox.setIcon(QMessageBox::Icon::Critical);
@@ -1192,11 +1192,11 @@ void MainWindow::on_actionNew_Tileset_triggered() {
             return;
         }
         QMap<QString, QStringList> tilesets = this->editor->project->getTilesetLabels();
-        if(tilesets.value("primary").contains(createTilesetDialog->fullSymbolName) || tilesets.value("secondary").contains(createTilesetDialog->fullSymbolName)) {
-            logError(QString("Could not create tileset \"%1\", the symbol \"%2\" already exists.").arg(createTilesetDialog->friendlyName, createTilesetDialog->fullSymbolName));
+        if(tilesets.value("primary").contains(createTilesetDialog.fullSymbolName) || tilesets.value("secondary").contains(createTilesetDialog.fullSymbolName)) {
+            logError(QString("Could not create tileset \"%1\", the symbol \"%2\" already exists.").arg(createTilesetDialog.friendlyName, createTilesetDialog.fullSymbolName));
             QMessageBox msgBox(this);
             msgBox.setText("Failed to add new tileset.");
-            QString message = QString("The symbol for tileset \"%1\" (\"%2\") already exists.").arg(createTilesetDialog->friendlyName, createTilesetDialog->fullSymbolName);
+            QString message = QString("The symbol for tileset \"%1\" (\"%2\") already exists.").arg(createTilesetDialog.friendlyName, createTilesetDialog.fullSymbolName);
             msgBox.setInformativeText(message);
             msgBox.setDefaultButton(QMessageBox::Ok);
             msgBox.setIcon(QMessageBox::Icon::Critical);
@@ -1206,12 +1206,12 @@ void MainWindow::on_actionNew_Tileset_triggered() {
         directory.mkdir(fullDirectoryPath);
         directory.mkdir(fullDirectoryPath + "/palettes");
         Tileset newSet;
-        newSet.name = createTilesetDialog->fullSymbolName;
+        newSet.name = createTilesetDialog.fullSymbolName;
         newSet.tilesImagePath = fullDirectoryPath + "/tiles.png";
         newSet.metatiles_path = fullDirectoryPath + "/metatiles.bin";
         newSet.metatile_attrs_path = fullDirectoryPath + "/metatile_attributes.bin";
-        newSet.is_secondary = createTilesetDialog->isSecondary ? "TRUE" : "FALSE";
-        int numMetaTiles = createTilesetDialog->isSecondary ? (Project::getNumTilesTotal() - Project::getNumTilesPrimary()) : Project::getNumTilesPrimary();
+        newSet.is_secondary = createTilesetDialog.isSecondary ? "TRUE" : "FALSE";
+        int numMetaTiles = createTilesetDialog.isSecondary ? (Project::getNumTilesTotal() - Project::getNumTilesPrimary()) : Project::getNumTilesPrimary();
         QImage tilesImage(":/images/blank_tileset.png");
         editor->project->loadTilesetTiles(&newSet, tilesImage);
         for(int i = 0; i < numMetaTiles; ++i) {
@@ -1254,21 +1254,23 @@ void MainWindow::on_actionNew_Tileset_triggered() {
 
         //append to tileset specific files
 
-        newSet.appendToHeaders(editor->project->root + "/data/tilesets/headers.inc", createTilesetDialog->friendlyName);
-        newSet.appendToGraphics(editor->project->root + "/data/tilesets/graphics.inc", createTilesetDialog->friendlyName, !createTilesetDialog->isSecondary);
-        newSet.appendToMetatiles(editor->project->root + "/data/tilesets/metatiles.inc", createTilesetDialog->friendlyName, !createTilesetDialog->isSecondary);
-        if(!createTilesetDialog->isSecondary) {
-            this->ui->comboBox_PrimaryTileset->addItem(createTilesetDialog->fullSymbolName);
+        newSet.appendToHeaders(editor->project->root + "/data/tilesets/headers.inc", createTilesetDialog.friendlyName);
+        newSet.appendToGraphics(editor->project->root + "/data/tilesets/graphics.inc", createTilesetDialog.friendlyName, !createTilesetDialog.isSecondary);
+        newSet.appendToMetatiles(editor->project->root + "/data/tilesets/metatiles.inc", createTilesetDialog.friendlyName, !createTilesetDialog.isSecondary);
+        if(!createTilesetDialog.isSecondary) {
+            this->ui->comboBox_PrimaryTileset->addItem(createTilesetDialog.fullSymbolName);
         } else {
-            this->ui->comboBox_SecondaryTileset->addItem(createTilesetDialog->fullSymbolName);
+            this->ui->comboBox_SecondaryTileset->addItem(createTilesetDialog.fullSymbolName);
         }
+
+        qDebug() << sizeof createTilesetDialog;
 
         // hydrate tileset labels.
         this->editor->project->getTilesetLabels();
 
         QMessageBox msgBox(this);
         msgBox.setText("Successfully created tileset.");
-        QString message = QString("Tileset \"%1\" was created successfully.").arg(createTilesetDialog->friendlyName);
+        QString message = QString("Tileset \"%1\" was created successfully.").arg(createTilesetDialog.friendlyName);
         msgBox.setInformativeText(message);
         msgBox.setDefaultButton(QMessageBox::Ok);
         msgBox.setIcon(QMessageBox::Icon::Information);
@@ -2694,6 +2696,7 @@ void MainWindow::on_actionOpen_Config_Folder_triggered() {
 void MainWindow::on_actionEdit_Preferences_triggered() {
     if (!preferenceEditor) {
         preferenceEditor = new PreferenceEditor(this);
+        preferenceEditor->setAttribute(Qt::WA_DeleteOnClose);
         connect(preferenceEditor, &PreferenceEditor::themeChanged,
                 this, &MainWindow::setTheme);
         connect(preferenceEditor, &PreferenceEditor::themeChanged,
