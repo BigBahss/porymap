@@ -99,18 +99,20 @@ QString Project::getProjectTitle() {
 }
 
 void Project::clearMapCache() {
-    for (QString mapName : mapCache.keys()) {
-        Map *map = mapCache.take(mapName);
-        if (map) delete map;
+    for (auto *map : mapCache.values()) {
+        if (map)
+            delete map;
     }
+    mapCache.clear();
     emit mapCacheCleared();
 }
 
 void Project::clearTilesetCache() {
-    for (QString tilesetName : tilesetCache.keys()) {
-        Tileset *tileset = tilesetCache.take(tilesetName);
-        if (tileset) delete tileset;
+    for (auto *tileset : tilesetCache.values()) {
+        if (tileset)
+            delete tileset;
     }
+    tilesetCache.clear();
 }
 
 Map* Project::loadMap(QString map_name) {
@@ -1222,12 +1224,8 @@ void Project::writeBlockdata(QString path, const Blockdata &blockdata) {
 }
 
 void Project::saveAllMaps() {
-    QList<QString> keys = mapCache.keys();
-    for (int i = 0; i < keys.length(); i++) {
-        QString key = keys.value(i);
-        Map* map = mapCache.value(key);
+    for (auto *map : mapCache.values())
         saveMap(map);
-    }
 }
 
 void Project::saveMap(Map *map) {
@@ -1242,14 +1240,15 @@ void Project::saveMap(Map *map) {
         QString text = this->getScriptDefaultString(projectConfig.getUsePoryScript(), map->name);
         saveTextFile(root + "/data/maps/" + map->name + "/scripts" + this->getScriptFileExtension(projectConfig.getUsePoryScript()), text);
 
-        if (projectConfig.getBaseGameVersion() == BaseGameVersion::pokeruby || projectConfig.getBaseGameVersion() == BaseGameVersion::pokefirered) {
+        bool usesTextFile = projectConfig.getCreateMapTextFileEnabled();
+        if (usesTextFile) {
             // Create file data/maps/<map_name>/text.inc
             saveTextFile(root + "/data/maps/" + map->name + "/text" + this->getScriptFileExtension(projectConfig.getUsePoryScript()), "\n");
         }
 
         // Simply append to data/event_scripts.s.
         text = QString("\n\t.include \"data/maps/%1/scripts.inc\"\n").arg(map->name);
-        if (projectConfig.getBaseGameVersion() == BaseGameVersion::pokeruby || projectConfig.getBaseGameVersion() == BaseGameVersion::pokefirered) {
+        if (usesTextFile) {
             text += QString("\t.include \"data/maps/%1/text.inc\"\n").arg(map->name);
         }
         appendTextFile(root + "/data/event_scripts.s", text);
@@ -1837,54 +1836,28 @@ bool Project::readMapGroups() {
     return true;
 }
 
-Map* Project::addNewMapToGroup(QString mapName, int groupNum) {
-    // Setup new map in memory, but don't write to file until map is actually saved later.
-    mapNames.append(mapName);
-    mapGroups.insert(mapName, groupNum);
-    groupedMapNames[groupNum].append(mapName);
-
-    Map *map = new Map;
-    map->isPersistedToFile = false;
-    map->setName(mapName);
-    mapConstantsToMapNames.insert(map->constantName, map->name);
-    mapNamesToMapConstants.insert(map->name, map->constantName);
-    setNewMapHeader(map, mapLayoutsTable.size() + 1);
-    setNewMapLayout(map);
-    loadMapTilesets(map);
-    setNewMapBlockdata(map);
-    setNewMapBorder(map);
-    setNewMapEvents(map);
-    setNewMapConnections(map);
-    mapCache.insert(mapName, map);
-
-    return map;
-}
-
 Map* Project::addNewMapToGroup(QString mapName, int groupNum, Map *newMap, bool existingLayout) {
     mapNames.append(mapName);
     mapGroups.insert(mapName, groupNum);
     groupedMapNames[groupNum].append(mapName);
 
-    Map *map = new Map;
-    map = newMap;
+    newMap->isPersistedToFile = false;
+    newMap->setName(mapName);
 
-    map->isPersistedToFile = false;
-    map->setName(mapName);
-
-    mapConstantsToMapNames.insert(map->constantName, map->name);
-    mapNamesToMapConstants.insert(map->name, map->constantName);
+    mapConstantsToMapNames.insert(newMap->constantName, newMap->name);
+    mapNamesToMapConstants.insert(newMap->name, newMap->constantName);
     if (!existingLayout) {
-        mapLayouts.insert(map->layoutId, map->layout);
-        mapLayoutsTable.append(map->layoutId);
-        setNewMapBlockdata(map);
-        setNewMapBorder(map);
+        mapLayouts.insert(newMap->layoutId, newMap->layout);
+        mapLayoutsTable.append(newMap->layoutId);
+        setNewMapBlockdata(newMap);
+        setNewMapBorder(newMap);
     }
 
-    loadMapTilesets(map);
-    setNewMapEvents(map);
-    setNewMapConnections(map);
+    loadMapTilesets(newMap);
+    setNewMapEvents(newMap);
+    setNewMapConnections(newMap);
 
-    return map;
+    return newMap;
 }
 
 QString Project::getNewMapName() {
