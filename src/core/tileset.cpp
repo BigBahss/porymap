@@ -59,6 +59,13 @@ Tileset &Tileset::operator=(const Tileset &other) {
     return *this;
 }
 
+Tileset::~Tileset()
+{
+    for (auto *metatile : metatiles) {
+        delete metatile;
+    }
+}
+
 Tileset* Tileset::getBlockTileset(int metatile_index, Tileset *primaryTileset, Tileset *secondaryTileset) {
     if (metatile_index < Project::getNumMetatilesPrimary()) {
         return primaryTileset;

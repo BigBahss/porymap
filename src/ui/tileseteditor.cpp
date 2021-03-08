@@ -32,7 +32,6 @@ TilesetEditor::~TilesetEditor()
     delete tileSelector;
     delete metatileLayersItem;
     delete paletteEditor;
-    delete metatile;
     delete primaryTileset;
     delete secondaryTileset;
     delete metatilesScene;
