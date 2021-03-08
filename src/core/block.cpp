@@ -34,10 +34,10 @@ uint16_t Block::rawValue() const {
                 ((elevation & 0xf) << 12));
 }
 
-bool Block::operator ==(Block other) const {
+bool Block::operator==(const Block &other) const {
     return (tile == other.tile) && (collision == other.collision) && (elevation == other.elevation);
 }
 
-bool Block::operator !=(Block other) const {
-    return !(operator ==(other));
+bool Block::operator!=(const Block &other) const {
+    return !(operator==(other));
 }
